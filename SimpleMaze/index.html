@@ -4,13 +4,46 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Simple Maze</title>
+    <style>
+        .designAnnouncer {
+            background-color: black;
+            font-size: 100px;
+            border: 5px solid white;
+        }
+        .createPadding {
+            padding: 10px
+        }
+    </style>
 </head>
 <body style="background-color: black; color: white;">
-    <canvas id="layoutGame" width="1000" height="700" style="background-color: black;">
-
-    </canvas>
-    <code id="announcer" style="font-size: 50px;">
-        TEST...
+    <code id="announcer" style="
+        position: absolute;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 1;
+    "></code>
+    <canvas id="layoutGame" width="1000" height="700" style="
+        background-color: black;
+    "></canvas>
+    <code style="
+        position: absolute;
+        padding: 10px;
+        font-size: 20px;
+        z-index: -1;
+    ">
+        HOW TO PLAY? <br>
+        <ul>
+            <li class="createPadding">Player = Red, Finish = Magenta.</li>
+            <li class="createPadding">Your Goal => Reach to the Finish.</li>
+            <li class="createPadding">Use " WASD " to control the Red Player.</li>
+            <li class="createPadding">Click the Maze Layout to activate or deactivate the Red Player's speed booster.</li>
+            <li class="createPadding">Press " Shift + ~ " to activate automatic movement if you give up.</li>
+            <li class="createPadding">If you are a Programmer, you should be able to find a cheat for this game.</li>
+        </ul>
     </code>
     <script>
         const layoutGame = document.getElementById("layoutGame");
@@ -179,6 +212,7 @@
                 if (this.arrSys[pos.Y][pos.X] === 3) {
                     document.removeEventListener("keydown", keyBindEvent);
                     document.removeEventListener("keyup", keyBindEvent);
+                    announcer.classList.add("designAnnouncer");
                     announcer.innerHTML = "YOU WIN!!";
                     delete window.commandPlayer;
                     setTimeout(() => window.location.reload(), 3000);
