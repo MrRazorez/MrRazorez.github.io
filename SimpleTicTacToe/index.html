@@ -412,30 +412,40 @@
 
                 class environmentGame {
                     constructor(playerList) {
+                        this.callPlayer = {};
+                        this.callPlayer[chooseMode === "human" ? "P1" : "Player"] = new playerGame(chooseMode === "human" ? "P1" : "Player", chooseChar === "x" ? "x" : "o", "human");
+                        this.callPlayer[chooseMode === "computer" ? "Computer" : "P2"] = new playerGame(chooseMode === "computer" ? "Computer" : "P2", chooseChar !== "x" ? "x" : "o", chooseMode);
                         this.arrSys = new Array(9).fill("");
-                        this.playerList = Object.values(playerList).map(player => player.name);
-                        this.pickList = Object.values(playerList).map(player => player.playAs);
-                        this.turn = this.playerList[Math.floor(Math.random() * 2)];
+                        this.turn = Object.keys(this.callPlayer)[Math.floor(Math.random() * 2)];
+                        this.isBlock = this.checkPlayer();
                         whosTurn.textContent = this.turn+"'s Turn!";
                     }
 
-                    signingBox(index, sign) {
+                    signingBox(index) {
                         if (this.arrSys[index] === "") {
-                            this.arrSys[index] = sign;
-                            this.switchPlayer();
+                            this.arrSys[index] = this.callPlayer[this.turn].playAs;
                         }
                     }
 
                     switchPlayer() {
-                        this.turn = this.playerList.filter(name => name !== this.turn)[0];
+                        this.turn = Object.keys(this.callPlayer).filter(name => name !== this.turn)[0];
+                        this.isBlock = this.checkPlayer();
                         whosTurn.textContent = this.turn+"'s Turn!";
+                    }
+
+                    checkPlayer() {
+                        if (this.callPlayer[this.turn].role === "computer") {
+                            return true;
+                        } else {
+                            return false;
+                        }
                     }
 
                     detectLayout() {
                         for (let i = 0; i < 9; i += 3) {
                             if (this.arrSys[i] !== "" && this.arrSys[i] === this.arrSys[i+1] && this.arrSys[i] === this.arrSys[i+2]) {
                                 announcer.classList.add("designAnnouncer");
-                                announcer.textContent = this.playerList[this.pickList.findIndex(e => e === this.arrSys[i])]+" Win!!!";
+                                announcer.textContent = `${Object.keys(this.callPlayer)[Object.values(this.callPlayer).findIndex(e => e.playAs === this.arrSys[i])]} Win!!!`;
                                 return true;
                             }
                         }
@@ -443,20 +453,20 @@
                         for (let i = 0; i < 3; i++) {
                             if (this.arrSys[i] !== "" && this.arrSys[i] === this.arrSys[i+3] && this.arrSys[i] === this.arrSys[i+6]) {
                                 announcer.classList.add("designAnnouncer");
-                                announcer.textContent = this.playerList[this.pickList.findIndex(e => e === this.arrSys[i])]+" Win!!!";
+                                announcer.textContent = `${Object.keys(this.callPlayer)[Object.values(this.callPlayer).findIndex(e => e.playAs === this.arrSys[i])]} Win!!!`;
                                 return true;
                             }
                         }
 
                         if (this.arrSys[0] !== "" && this.arrSys[0] === this.arrSys[4] && this.arrSys[0] === this.arrSys[8]) {
                             announcer.classList.add("designAnnouncer");
-                            announcer.textContent = this.playerList[this.pickList.findIndex(e => e === this.arrSys[0])]+" Win!!!";
+                            announcer.textContent = `${Object.keys(this.callPlayer)[Object.values(this.callPlayer).findIndex(e => e.playAs === this.arrSys[0])]} Win!!!`;
                             return true;
                         }
 
                         if (this.arrSys[2] !== "" && this.arrSys[2] === this.arrSys[4] && this.arrSys[2] === this.arrSys[6]) {
                             announcer.classList.add("designAnnouncer");
-                            announcer.textContent = this.playerList[this.pickList.findIndex(e => e === this.arrSys[2])]+" Win!!!";
+                            announcer.textContent = `${Object.keys(this.callPlayer)[Object.values(this.callPlayer).findIndex(e => e.playAs === this.arrSys[2])]} Win!!!`;
                             return true;
                         }
 
@@ -515,54 +525,60 @@
                             }
                         }
                     }
-                }
 
-                const callPlayer = {};
-                callPlayer[chooseMode === "human" ? "P1" : "Player"] = new playerGame(chooseMode === "human" ? "P1" : "Player", chooseChar === "x" ? "x" : "o", "human");
-                callPlayer[chooseMode === "computer" ? "Computer" : "P2"] = new playerGame(chooseMode === "computer" ? "Computer" : "P2", chooseChar !== "x" ? "x" : "o", chooseMode);
-                const renderEnv = new environmentGame(callPlayer);
-
-                const engineGame = {
-                    update : () => {
-                        stopGame = renderEnv.detectLayout();
+                    async update() {
+                        stopGame = this.detectLayout();
 
 
                         if (stopGame === true) {
-                            layoutGame.removeEventListener("click", clickEvent);
-                            document.removeEventListener("keydown", keyEvent);
-                            clearInterval(intervalID);
-                            setTimeout(() => window.location.reload(), 3000);
-                        } else {
-                            if (callPlayer[renderEnv.turn].role === "computer") {
-                                renderEnv.signingBox(callPlayer[renderEnv.turn].computerTurn(Array.from(renderEnv.arrSys)), callPlayer[renderEnv.turn].playAs);
+                            this.isBlock = true;
+                            setTimeout(async () => await window.location.reload(), 3000);
+                        } else if (this.callPlayer[this.turn].role === "computer") {
+                            const timer = Math.floor((this.arrSys.filter(e => e === "").length / 9) * 6000);
+                            announcer.classList.add("designAnnouncer");
+                            announcer.textContent = "LOADING...";
+                            setTimeout(async () => {
+                                await announcer.classList.remove("designAnnouncer");
+                                announcer.textContent = null;
+                            }, timer);
+                            await sleep(timer);
+                            this.signingBox(this.callPlayer[this.turn].computerTurn(Array.from(this.arrSys)));
+                            this.switchPlayer();
+                            this.layout();
+                            this.update();
+                        }
+                    }
+
+                    clickEvent(e) {
+                        if (this.isBlock === false) {
+                            this.signingBox(this.callPlayer[this.turn].handleClick(e));
+                            this.switchPlayer();
+                            this.layout();
+                            this.update();
+                        }
+                    }
+
+                    keyEvent(e) {
+                        if (this.isBlock === false) {
+                            if (e.key === "~") {
+                                if (this.callPlayer[this.turn].role === "human") {
+                                    this.signingBox(this.callPlayer[this.turn].playersGuide(Array.from(this.arrSys)));
+                                    this.switchPlayer();
+                                    this.layout();
+                                    this.update();
+                                }
                             }
                         }
-                    },
-                    render : () => {
-                        renderEnv.layout();
                     }
                 }
 
-                const clickEvent = (e) => {
-                    renderEnv.signingBox(callPlayer[renderEnv.turn].handleClick(e), callPlayer[renderEnv.turn].playAs);
-                }
+                const renderEnv = new environmentGame();
 
-                const keyEvent = (e) => {
-                    if (e.key === "~") {
-                        if (callPlayer[renderEnv.turn].role === "human") {
-                            renderEnv.signingBox(callPlayer[renderEnv.turn].playersGuide(Array.from(renderEnv.arrSys)), callPlayer[renderEnv.turn].playAs);
-                        }
-                    }
-                }
+                layoutGame.addEventListener("click", renderEnv.clickEvent.bind(renderEnv));
+                document.addEventListener("keydown", renderEnv.keyEvent.bind(renderEnv));
 
-                layoutGame.addEventListener("click", clickEvent);
-                document.addEventListener("keydown", keyEvent);
-
-                const fps = 60;
-                const intervalID = setInterval(() => {
-                    engineGame.update();
-                    engineGame.render();
-                }, 1000/60);
+                renderEnv.layout();
+                renderEnv.update();
             }
         });
     </script>
