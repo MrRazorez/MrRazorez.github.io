@@ -6,8 +6,8 @@
     <title>Simple Maze</title>
     <style>
         .exitGate {
-            position: relative;
-            float: right;
+            position: absolute;
+            left: 95%;
             width: 25px;
             height: 25px;
             margin: 0px;
@@ -153,12 +153,12 @@
                         X : Math.floor(Math.random() * (layoutGame.width/this.callPlayer.box.width)),
                         Y : Math.floor(Math.random() * (layoutGame.height/this.callPlayer.box.height))
                     }
-                } while (this.arrSys[pos.Y][pos.X] === 1 || this.arrSys[pos.Y][pos.X] === 2);
+                } while ((pos.X === this.callPlayer.pos.X && pos.Y === this.callPlayer.pos.Y ) || this.arrSys[pos.Y][pos.X] === 1 || this.checkOneDir(pos) === true);
 
                 return pos;
             }
 
-            checkOneDir() {
+            checkOneDir(pos) {
                 const direction = {
                     up : [0,-1],
                     down: [0,1],
@@ -169,7 +169,7 @@
                 var res = [];
 
                 for (const [key, value] of Object.entries(direction)) {
-                    res.push(this.arrSys[this.fin.Y + value[1]][this.fin.X + value[0]]);
+                    res.push(this.arrSys[pos.Y + value[1]][pos.X + value[0]]);
                 }
 
                 res = res.filter(e => e === 0);
