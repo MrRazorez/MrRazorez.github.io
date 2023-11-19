@@ -53,12 +53,19 @@
             font-size: 13px;
             z-index: -1;
         }
+        body {
+            background-color: black;
+            color: white;
+        }
+        canvas {
+            background-color: black;
+        }
     </style>
 </head>
-<body style="background-color: black; color: white;">
+<body>
     <div class="exitGate"><a href="../index.html">X</a></div>
     <code id="announcer" class="notification"></code>
-    <canvas id="layoutGame" width="1000" height="700" style="background-color: black;"></canvas>
+    <canvas id="layoutGame" width="1000" height="700"></canvas>
     <code class="guidePlay">
         <code id="isBoost">BOOST MODE OFF</code><br><br>
         HOW TO PLAY? <br>
@@ -615,29 +622,31 @@
 
             if (e.key === "~") {
                 if (canICheat === true) {
-                    let cheat = document.createElement("code");
-                    cheat.id = "cheatActivated";
-                    cheat.style.fontSize = "25px";
-                    cheat.style.textAlign = "center";
-                    cheat.style.backgroundColor = "black";
-                    cheat.style.padding = "50px";
-                    cheat.style.border = "5px solid white";
+                    if (!document.getElementById("cheatActivated")) {
+                        let cheat = document.createElement("code");
+                        cheat.id = "cheatActivated";
+                        cheat.style.fontSize = "25px";
+                        cheat.style.textAlign = "center";
+                        cheat.style.backgroundColor = "black";
+                        cheat.style.padding = "50px";
+                        cheat.style.border = "5px solid white";
 
-                    let text = "You should turn ";
+                        let text = "You should turn ";
 
-                    if (renderEnv.mazeFindPath()[0][0] === "w") {
-                        text += "UP";
-                    } else if (renderEnv.mazeFindPath()[0][0] === "a") {
-                        text += "LEFT";
-                    } else if (renderEnv.mazeFindPath()[0][0] === "s") {
-                        text += "DOWN";
-                    } else if (renderEnv.mazeFindPath()[0][0] === "d") {
-                        text += "RIGHT";
+                        if (renderEnv.mazeFindPath()[0][0] === "w") {
+                            text += "UP";
+                        } else if (renderEnv.mazeFindPath()[0][0] === "a") {
+                            text += "LEFT";
+                        } else if (renderEnv.mazeFindPath()[0][0] === "s") {
+                            text += "DOWN";
+                        } else if (renderEnv.mazeFindPath()[0][0] === "d") {
+                            text += "RIGHT";
+                        }
+                        cheat.textContent = text;
+
+                        announcer.appendChild(cheat);
+                        setTimeout(async () => await cheat.remove(), 3000);
                     }
-                    cheat.textContent = text;
-
-                    announcer.appendChild(cheat);
-                    setTimeout(async () => await cheat.remove(), 3000);
                 } else {
                     cheat("gotohell");
                 }
