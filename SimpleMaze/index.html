@@ -86,6 +86,18 @@
         const announcer = document.getElementById("announcer");
         const isBoost = document.getElementById("isBoost");
 
+        const sleep = (ms) => {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        announcer.classList.add("designAnnouncer");
+        announcer.textContent = "GET READY!!";
+
+        setTimeout(async () => {
+            await announcer.classList.remove("designAnnouncer");
+            announcer.textContent = null;
+        }, 5000);
+
         let canICheat = true;
 
         const createEmpty = (cols, rows) => {
@@ -151,6 +163,13 @@
                 this.arrSys[this.fin.Y][this.fin.X] = 3;
 
                 this.dirtyRect = [];
+                this.animationID = null;
+            }
+
+            engineGame() {
+                this.detectPlayer();
+                this.redrawDirtyRect();
+                this.animationID = requestAnimationFrame(this.engineGame.bind(this));
             }
 
             randomFreePosition() {
@@ -381,6 +400,7 @@
                     announcer.classList.add("designAnnouncer");
                     announcer.textContent = "YOU WIN!!";
                     delete window.commandPlayer;
+                    cancelAnimationFrame(this.animationID);
                     setTimeout(() => window.location.reload(), 3000);
                 }
             }
@@ -655,18 +675,16 @@
             }
         }
 
-        document.addEventListener("keydown", keyBindEvent);
-        layoutGame.addEventListener("click", activateBoost);
+        const gameLooping = async () => {
+            await sleep(5000);
+            document.addEventListener("keydown", keyBindEvent);
+            layoutGame.addEventListener("click", activateBoost);
 
-        renderEnv.layout();
-
-        const engineGame = () => {
-            renderEnv.detectPlayer();
-            renderEnv.redrawDirtyRect();
-            requestAnimationFrame(engineGame);
+            renderEnv.layout();
+            renderEnv.engineGame();
         }
 
-        engineGame();
+        gameLooping();
 
     </script>
 </body>
