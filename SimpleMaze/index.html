@@ -164,6 +164,7 @@
 
                 this.dirtyRect = [];
                 this.animationID = null;
+                this.isNotOver = true;
             }
 
             engineGame() {
@@ -394,14 +395,20 @@
             }
 
             detectPlayer() {
-                if (this.callPlayer.pos.X === this.fin.X && this.callPlayer.pos.Y === this.fin.Y) {
-                    document.removeEventListener("keydown", keyBindEvent);
-                    document.removeEventListener("keyup", keyBindEvent);
-                    announcer.classList.add("designAnnouncer");
-                    announcer.textContent = "YOU WIN!!";
-                    delete window.commandPlayer;
-                    cancelAnimationFrame(this.animationID);
-                    setTimeout(() => window.location.reload(), 3000);
+                if (this.isNotOver === true) {
+                    if (this.callPlayer.pos.X === this.fin.X && this.callPlayer.pos.Y === this.fin.Y) {
+                        document.removeEventListener("keydown", keyBindEvent);
+                        document.removeEventListener("keyup", keyBindEvent);
+                        announcer.classList.add("designAnnouncer");
+                        announcer.textContent = "YOU WIN!!";
+                        delete window.commandPlayer;
+                        cancelAnimationFrame(this.animationID);
+                        this.isNotOver = false;
+                        
+                        setTimeout(async () => {
+                            await window.location.reload();
+                        }, 3000);
+                    }
                 }
             }
 
