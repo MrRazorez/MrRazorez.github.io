@@ -5,6 +5,53 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Simple Tic Tac Toe</title>
     <style>
+                .exitGate {
+            position: relative;
+            float: right;
+            width: 25px;
+            height: 25px;
+            margin: 0px;
+            padding: 10px;
+            text-align: center;
+            border: 2px solid white;
+            border-radius: 5px;
+            z-index: 3;
+        }
+        .exitGate:hover {
+            border: 2px solid red;
+        }
+        .exitGate a {
+            text-decoration: none;
+            color: white;
+            font-family: 'Courier New', monospace;
+            font-size: 25px;
+        }
+        .exitGate:hover a:hover {
+            color: red;
+        }
+        .toCenter {
+            position: absolute;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1;
+        }
+        .toChooseChar {
+            font-size: 25px;
+            text-align: center;
+            background-color: black;
+            padding: 50px;
+            border: 5px solid white;
+        }
+        .toGuide {
+            position: absolute;
+            padding: 10px;
+            font-size: 13px;
+            z-index: -1;
+        }
         .createPadding {
             padding: 10px
         }
@@ -29,23 +76,9 @@
     </style>
 </head>
 <body style="background-color: black; color: white;">
-    <code style="
-        position: absolute;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        z-index: 1;
-    ">
-        <code id="chooseChar" style="
-            font-size: 25px;
-            text-align: center;
-            background-color: black;
-            padding: 50px;
-            border: 5px solid white;
-        ">
+    <div class="exitGate"><a href="../index.html">X</a></div>
+    <code class="toCenter">
+        <code id="chooseChar" class="toChooseChar">
             CHOOSE YOUR GAME PIECES! <br>
             <button class="designButton" value="x">X</button>
             <button class="designButton" value="o">O</button>
@@ -56,469 +89,463 @@
         </code>
         <code id="announcer"></code>
     </code>
-    <canvas id="layoutGame" width="600" height="600" style="
-        padding: 0;
-        background-color: black;
-    "></canvas>
-    <code style="
-        position: absolute;
-        padding: 10px;
-        font-size: 20px;
-        z-index: -1;
-    ">
+    <canvas id="layoutGame" width="600" height="600" style="padding: 0;background-color: black;"></canvas>
+    <code class="toGuide">
         <code id="whosTurn"></code><br><br>
         HOW TO PLAY? <br>
         <ul>
             <li class="createPadding">Select the Game Pieces and Game Mode.</li>
             <li class="createPadding">If you press " Shift + ~ ", Your AI will guide your line.</li>
-            <li class="createPadding">If you are a Programmer, you should be able to find a cheat for this game.</li>
+            <li class="createPadding">If you are a Programmer, you should be able to find another cheats for this game.</li>
             <li class="createPadding">Enjoy the Game!</li>
         </ul>
     </code>
     <script>
-        let inputChar = "";
-        const chooseChar = document.getElementById("chooseChar");
+        document.addEventListener("DOMContentLoaded", () => {
+            let inputChar = "";
+            const chooseChar = document.getElementById("chooseChar");
 
-        chooseChar.addEventListener("click", (e) => {
-            const getGamePieces = document.getElementById("getGamePieces");
-            if (e.target.nodeName === "BUTTON") {
-                if (e.target.value === "human" || e.target.value === "computer") {
-                    if (inputChar !== "") {
-                        startGame(inputChar, e.target.value);
-                        chooseChar.remove();
+            chooseChar.addEventListener("click", (e) => {
+                const getGamePieces = document.getElementById("getGamePieces");
+                if (e.target.nodeName === "BUTTON") {
+                    if (e.target.value === "human" || e.target.value === "computer") {
+                        if (inputChar !== "") {
+                            startGame(inputChar, e.target.value);
+                            chooseChar.remove();
+                        }
+                    } else {
+                        inputChar = e.target.value;
+                        getGamePieces.textContent = e.target.value === "x" ? "X" : "O";
                     }
-                } else {
-                    inputChar = e.target.value;
-                    getGamePieces.innerHTML = e.target.value === "x" ? "X" : "O";
                 }
+            });
+
+            const startGame = (chooseChar, chooseMode) => {
+                const layoutGame = document.getElementById("layoutGame");
+                const whosTurn = document.getElementById("whosTurn");
+                const announcer = document.getElementById("announcer");
+                const cellSize = 200;
+                var stopGame = false;
+
+                class playerGame {
+                    constructor(name, playAs, role) {
+                        this.name = name;
+                        this.playAs = playAs;
+                        this.role = role;
+                    }
+
+                    computerTurn(arrInit) {
+                        const choosePlayer = {
+                            mc: this.playAs === "x" ? "x" : "o",
+                            enemy: this.playAs !== "x" ? "x" : "o"
+                        }
+
+                        const isGameOver = () => {
+                            for (let i = 0; i < 9; i += 3) {
+                                if (arrInit[i] !== "" && arrInit[i] === arrInit[i+1] && arrInit[i] === arrInit[i+2]) {
+                                    return true;
+                                }
+                            }
+
+                            for (let i = 0; i < 3; i++) {
+                                if (arrInit[i] !== "" && arrInit[i] === arrInit[i+3] && arrInit[i] === arrInit[i+6]) {
+                                    return true;
+                                }
+                            }
+
+                            if (arrInit[0] !== "" && arrInit[0] === arrInit[4] && arrInit[0] === arrInit[8]) {
+                                return true;
+                            }
+
+                            if (arrInit[2] !== "" && arrInit[2] === arrInit[4] && arrInit[2] === arrInit[6]) {
+                                return true;
+                            }
+
+                            return arrInit.every(e => e !== "");
+                        }
+                        const evaluate = () => {
+                            for (let i = 0; i < 9; i += 3) {
+                                if (arrInit[i] !== "" && arrInit[i] === arrInit[i+1] && arrInit[i] === arrInit[i+2]) {
+                                    if (arrInit[i] === this.playAs) {
+                                        return 10;
+                                    } else {
+                                        return -10;
+                                    }
+                                }
+                            }
+
+                            for (let i = 0; i < 3; i++) {
+                                if (arrInit[i] !== "" && arrInit[i] === arrInit[i+3] && arrInit[i] === arrInit[i+6]) {
+                                    if (arrInit[i] === this.playAs) {
+                                        return 10;
+                                    } else {
+                                        return -10;
+                                    }
+                                }
+                            }
+
+                            if (arrInit[0] !== "" && arrInit[0] === arrInit[4] && arrInit[0] === arrInit[8]) {
+                                if (arrInit[0] === this.playAs) {
+                                    return 10;
+                                } else {
+                                    return -10;
+                                }
+                            }
+
+                            if (arrInit[2] !== "" && arrInit[2] === arrInit[4] && arrInit[2] === arrInit[6]) {
+                                if (arrInit[2] === this.playAs) {
+                                    return 10;
+                                } else {
+                                    return -10;
+                                }
+                            }
+
+                            return 0;
+                        }
+                        const minimax = (depth, isMax) => {
+                            if (isGameOver() === true || depth > 9) {
+                                return evaluate();
+                            }
+
+                            if (isMax === true) {
+                                let bestScore = -Infinity;
+                                for (let i = 0; i < 9; i++) {
+                                    if (arrInit[i] === "") {
+                                        arrInit[i] = choosePlayer.mc;
+                                        bestScore = Math.max(bestScore, minimax(depth + 1, false));
+                                        arrInit[i] = "";
+                                    }
+                                }
+
+                                return bestScore;
+                            } else {
+                                let bestScore = Infinity;
+                                for (let i = 0; i < 9; i++) {
+                                    if (arrInit[i] === "") {
+                                        arrInit[i] = choosePlayer.enemy;
+                                        bestScore = Math.min(bestScore, minimax(depth + 1, true));
+                                        arrInit[i] = "";
+                                    }
+                                }
+
+                                return bestScore;
+                            }
+                        }
+
+                        if (arrInit.every(e => e === "")) {
+                            return Math.floor(Math.random() * 9);
+                        }
+
+                        let bestScore = -Infinity;
+                        let bestMove;
+                        let visited = [];
+
+                        while (visited.length <= 5) {
+                            const i = Math.floor(Math.random() * 9);
+                            if (arrInit[i] === "") {
+                                arrInit[i] = choosePlayer.mc;
+                                let score = minimax(0, false);
+                                arrInit[i] = "";
+
+                                if (score > bestScore) {
+                                    bestScore = score;
+                                    bestMove = i;
+                                }
+                                visited.push(i);
+                            }
+                        }
+
+                        return bestMove;
+                    }
+
+                    playersGuide(arrInit) {
+                        const choosePlayer = {
+                            mc: this.playAs === "x" ? "x" : "o",
+                            enemy: this.playAs !== "x" ? "x" : "o"
+                        }
+
+                        const isGameOver = () => {
+                            for (let i = 0; i < 9; i += 3) {
+                                if (arrInit[i] !== "" && arrInit[i] === arrInit[i+1] && arrInit[i] === arrInit[i+2]) {
+                                    return true;
+                                }
+                            }
+
+                            for (let i = 0; i < 3; i++) {
+                                if (arrInit[i] !== "" && arrInit[i] === arrInit[i+3] && arrInit[i] === arrInit[i+6]) {
+                                    return true;
+                                }
+                            }
+
+                            if (arrInit[0] !== "" && arrInit[0] === arrInit[4] && arrInit[0] === arrInit[8]) {
+                                return true;
+                            }
+
+                            if (arrInit[2] !== "" && arrInit[2] === arrInit[4] && arrInit[2] === arrInit[6]) {
+                                return true;
+                            }
+
+                            return arrInit.every(e => e !== "");
+                        }
+                        const evaluate = () => {
+                            for (let i = 0; i < 9; i += 3) {
+                                if (arrInit[i] !== "" && arrInit[i] === arrInit[i+1] && arrInit[i] === arrInit[i+2]) {
+                                    if (arrInit[i] === this.playAs) {
+                                        return 10;
+                                    } else {
+                                        return -10;
+                                    }
+                                }
+                            }
+
+                            for (let i = 0; i < 3; i++) {
+                                if (arrInit[i] !== "" && arrInit[i] === arrInit[i+3] && arrInit[i] === arrInit[i+6]) {
+                                    if (arrInit[i] === this.playAs) {
+                                        return 10;
+                                    } else {
+                                        return -10;
+                                    }
+                                }
+                            }
+
+                            if (arrInit[0] !== "" && arrInit[0] === arrInit[4] && arrInit[0] === arrInit[8]) {
+                                if (arrInit[0] === this.playAs) {
+                                    return 10;
+                                } else {
+                                    return -10;
+                                }
+                            }
+
+                            if (arrInit[2] !== "" && arrInit[2] === arrInit[4] && arrInit[2] === arrInit[6]) {
+                                if (arrInit[2] === this.playAs) {
+                                    return 10;
+                                } else {
+                                    return -10;
+                                }
+                            }
+
+                            return 0;
+                        }
+                        const minimax = (depth, isMax) => {
+                            if (isGameOver() === true || depth > 9) {
+                                return evaluate();
+                            }
+
+                            if (isMax === true) {
+                                let bestScore = -Infinity;
+                                for (let i = 0; i < 9; i++) {
+                                    if (arrInit[i] === "") {
+                                        arrInit[i] = choosePlayer.mc;
+                                        bestScore = Math.max(bestScore, minimax(depth + 1, false));
+                                        arrInit[i] = "";
+                                    }
+                                }
+
+                                return bestScore;
+                            } else {
+                                let bestScore = Infinity;
+                                for (let i = 0; i < 9; i++) {
+                                    if (arrInit[i] === "") {
+                                        arrInit[i] = choosePlayer.enemy;
+                                        bestScore = Math.min(bestScore, minimax(depth + 1, true));
+                                        arrInit[i] = "";
+                                    }
+                                }
+
+                                return bestScore;
+                            }
+                        }
+
+                        if (arrInit.every(e => e === "")) {
+                            return Math.floor(Math.random() * 9);
+                        }
+
+                        let bestScore = -Infinity;
+                        let bestMove;
+
+                        for (let i = 0; i < 9; i++) {
+                            if (arrInit[i] === "") {
+                                arrInit[i] = choosePlayer.mc;
+                                let score = minimax(0, false);
+                                arrInit[i] = "";
+
+                                if (score > bestScore) {
+                                    bestScore = score;
+                                    bestMove = i;
+                                }
+                            }
+                        }
+
+                        return bestMove;
+                    }
+
+                    handleClick(e) {
+                        const rect = layoutGame.getBoundingClientRect();
+                        const mouseX = e.clientX - rect.left;
+                        const mouseY = e.clientY - rect.top;
+                        
+                        const col = Math.floor(mouseX / cellSize);
+                        const row = Math.floor(mouseY / cellSize);
+
+                        return row * 3 + col;
+                    }
+                }
+
+                class environmentGame {
+                    constructor(playerList) {
+                        this.arrSys = new Array(9).fill("");
+                        this.playerList = Object.values(playerList).map(player => player.name);
+                        this.pickList = Object.values(playerList).map(player => player.playAs);
+                        this.turn = this.playerList[Math.floor(Math.random() * 2)];
+                        whosTurn.textContent = this.turn+"'s Turn!";
+                    }
+
+                    signingBox(index, sign) {
+                        if (this.arrSys[index] === "") {
+                            this.arrSys[index] = sign;
+                            this.switchPlayer();
+                        }
+                    }
+
+                    switchPlayer() {
+                        this.turn = this.playerList.filter(name => name !== this.turn)[0];
+                        whosTurn.textContent = this.turn+"'s Turn!";
+                    }
+
+                    detectLayout() {
+                        for (let i = 0; i < 9; i += 3) {
+                            if (this.arrSys[i] !== "" && this.arrSys[i] === this.arrSys[i+1] && this.arrSys[i] === this.arrSys[i+2]) {
+                                announcer.classList.add("designAnnouncer");
+                                announcer.textContent = this.playerList[this.pickList.findIndex(e => e === this.arrSys[i])]+" Win!!!";
+                                return true;
+                            }
+                        }
+
+                        for (let i = 0; i < 3; i++) {
+                            if (this.arrSys[i] !== "" && this.arrSys[i] === this.arrSys[i+3] && this.arrSys[i] === this.arrSys[i+6]) {
+                                announcer.classList.add("designAnnouncer");
+                                announcer.textContent = this.playerList[this.pickList.findIndex(e => e === this.arrSys[i])]+" Win!!!";
+                                return true;
+                            }
+                        }
+
+                        if (this.arrSys[0] !== "" && this.arrSys[0] === this.arrSys[4] && this.arrSys[0] === this.arrSys[8]) {
+                            announcer.classList.add("designAnnouncer");
+                            announcer.textContent = this.playerList[this.pickList.findIndex(e => e === this.arrSys[0])]+" Win!!!";
+                            return true;
+                        }
+
+                        if (this.arrSys[2] !== "" && this.arrSys[2] === this.arrSys[4] && this.arrSys[2] === this.arrSys[6]) {
+                            announcer.classList.add("designAnnouncer");
+                            announcer.textContent = this.playerList[this.pickList.findIndex(e => e === this.arrSys[2])]+" Win!!!";
+                            return true;
+                        }
+
+                        if (this.arrSys.every(e => e !== "")) {
+                            announcer.classList.add("designAnnouncer");
+                            announcer.textContent = "Round Draw!!!";
+                        }
+
+                        return this.arrSys.every(e => e !== "");
+                    }
+
+                    layout() {
+                        const draw = layoutGame.getContext("2d");
+                        
+                        draw.clearRect(0, 0, layoutGame.width, layoutGame.height);
+
+                        const drawX = (row, col) => {
+                            draw.beginPath();
+                            draw.moveTo(col * cellSize + 10, row * cellSize + 10);
+                            draw.lineTo((col + 1) * cellSize - 10, (row + 1) * cellSize - 10);
+                            draw.stroke();
+
+                            draw.beginPath();
+                            draw.moveTo((col + 1) * cellSize - 10, row * cellSize + 10);
+                            draw.lineTo(col * cellSize + 10, (row + 1) * cellSize - 10);
+                            draw.stroke();
+                        }
+
+                        const drawO = (row, col) => {
+                            draw.beginPath();
+                            draw.arc(col * cellSize + cellSize / 2, row * cellSize + cellSize / 2, cellSize / 2 - 10, 0, 2 * Math.PI);
+                            draw.stroke();
+                        }
+
+                        for (let i = 1; i < 3; i++) {
+                            draw.beginPath();
+                            draw.moveTo(i * cellSize, 0);
+                            draw.lineTo(i * cellSize, layoutGame.height);
+                            draw.strokeStyle = "white";
+                            draw.stroke();
+
+                            draw.beginPath();
+                            draw.moveTo(0, i * cellSize);
+                            draw.lineTo(layoutGame.width, i * cellSize);
+                            draw.strokeStyle = "white";
+                            draw.stroke();
+                        }
+                        
+                        for (let j = 0; j < this.arrSys.length; j++) {
+                            const row = Math.floor(j / 3);
+                            const col = j % 3;
+                            if (this.arrSys[j] === "x") {
+                                drawX(row, col);
+                            } else if (this.arrSys[j] === "o") {
+                                drawO(row, col);
+                            }
+                        }
+                    }
+                }
+
+                const callPlayer = {};
+                callPlayer[chooseMode === "human" ? "P1" : "Player"] = new playerGame(chooseMode === "human" ? "P1" : "Player", chooseChar === "x" ? "x" : "o", "human");
+                callPlayer[chooseMode === "computer" ? "Computer" : "P2"] = new playerGame(chooseMode === "computer" ? "Computer" : "P2", chooseChar !== "x" ? "x" : "o", chooseMode);
+                const renderEnv = new environmentGame(callPlayer);
+
+                const engineGame = {
+                    update : () => {
+                        stopGame = renderEnv.detectLayout();
+
+
+                        if (stopGame === true) {
+                            layoutGame.removeEventListener("click", clickEvent);
+                            document.removeEventListener("keydown", keyEvent);
+                            clearInterval(intervalID);
+                            setTimeout(() => window.location.reload(), 3000);
+                        } else {
+                            if (callPlayer[renderEnv.turn].role === "computer") {
+                                renderEnv.signingBox(callPlayer[renderEnv.turn].computerTurn(Array.from(renderEnv.arrSys)), callPlayer[renderEnv.turn].playAs);
+                            }
+                        }
+                    },
+                    render : () => {
+                        renderEnv.layout();
+                    }
+                }
+
+                const clickEvent = (e) => {
+                    renderEnv.signingBox(callPlayer[renderEnv.turn].handleClick(e), callPlayer[renderEnv.turn].playAs);
+                }
+
+                const keyEvent = (e) => {
+                    if (e.key === "~") {
+                        if (callPlayer[renderEnv.turn].role === "human") {
+                            renderEnv.signingBox(callPlayer[renderEnv.turn].playersGuide(Array.from(renderEnv.arrSys)), callPlayer[renderEnv.turn].playAs);
+                        }
+                    }
+                }
+
+                layoutGame.addEventListener("click", clickEvent);
+                document.addEventListener("keydown", keyEvent);
+
+                const fps = 60;
+                const intervalID = setInterval(() => {
+                    engineGame.update();
+                    engineGame.render();
+                }, 1000/60);
             }
         });
-
-        const startGame = (chooseChar, chooseMode) => {
-            const layoutGame = document.getElementById("layoutGame");
-            const whosTurn = document.getElementById("whosTurn");
-            const announcer = document.getElementById("announcer");
-            const cellSize = 200;
-            var stopGame = false;
-
-            class playerGame {
-                constructor(name, playAs, role) {
-                    this.name = name;
-                    this.playAs = playAs;
-                    this.role = role;
-                }
-
-                computerTurn(arrInit) {
-                    const choosePlayer = {
-                        mc: this.playAs === "x" ? "x" : "o",
-                        enemy: this.playAs !== "x" ? "x" : "o"
-                    }
-
-                    const isGameOver = () => {
-                        for (let i = 0; i < 9; i += 3) {
-                            if (arrInit[i] !== "" && arrInit[i] === arrInit[i+1] && arrInit[i] === arrInit[i+2]) {
-                                return true;
-                            }
-                        }
-
-                        for (let i = 0; i < 3; i++) {
-                            if (arrInit[i] !== "" && arrInit[i] === arrInit[i+3] && arrInit[i] === arrInit[i+6]) {
-                                return true;
-                            }
-                        }
-
-                        if (arrInit[0] !== "" && arrInit[0] === arrInit[4] && arrInit[0] === arrInit[8]) {
-                            return true;
-                        }
-
-                        if (arrInit[2] !== "" && arrInit[2] === arrInit[4] && arrInit[2] === arrInit[6]) {
-                            return true;
-                        }
-
-                        return arrInit.every(e => e !== "");
-                    }
-                    const evaluate = () => {
-                        for (let i = 0; i < 9; i += 3) {
-                            if (arrInit[i] !== "" && arrInit[i] === arrInit[i+1] && arrInit[i] === arrInit[i+2]) {
-                                if (arrInit[i] === this.playAs) {
-                                    return 10;
-                                } else {
-                                    return -10;
-                                }
-                            }
-                        }
-
-                        for (let i = 0; i < 3; i++) {
-                            if (arrInit[i] !== "" && arrInit[i] === arrInit[i+3] && arrInit[i] === arrInit[i+6]) {
-                                if (arrInit[i] === this.playAs) {
-                                    return 10;
-                                } else {
-                                    return -10;
-                                }
-                            }
-                        }
-
-                        if (arrInit[0] !== "" && arrInit[0] === arrInit[4] && arrInit[0] === arrInit[8]) {
-                            if (arrInit[0] === this.playAs) {
-                                return 10;
-                            } else {
-                                return -10;
-                            }
-                        }
-
-                        if (arrInit[2] !== "" && arrInit[2] === arrInit[4] && arrInit[2] === arrInit[6]) {
-                            if (arrInit[2] === this.playAs) {
-                                return 10;
-                            } else {
-                                return -10;
-                            }
-                        }
-
-                        return 0;
-                    }
-                    const minimax = (depth, isMax) => {
-                        if (isGameOver() === true || depth > 9) {
-                            return evaluate();
-                        }
-
-                        if (isMax === true) {
-                            let bestScore = -Infinity;
-                            for (let i = 0; i < 9; i++) {
-                                if (arrInit[i] === "") {
-                                    arrInit[i] = choosePlayer.mc;
-                                    bestScore = Math.max(bestScore, minimax(depth + 1, false));
-                                    arrInit[i] = "";
-                                }
-                            }
-
-                            return bestScore;
-                        } else {
-                            let bestScore = Infinity;
-                            for (let i = 0; i < 9; i++) {
-                                if (arrInit[i] === "") {
-                                    arrInit[i] = choosePlayer.enemy;
-                                    bestScore = Math.min(bestScore, minimax(depth + 1, true));
-                                    arrInit[i] = "";
-                                }
-                            }
-
-                            return bestScore;
-                        }
-                    }
-
-                    if (arrInit.every(e => e === "")) {
-                        return Math.floor(Math.random() * 9);
-                    }
-
-                    let bestScore = -Infinity;
-                    let bestMove;
-                    let visited = [];
-
-                    while (visited.length <= 5) {
-                        const i = Math.floor(Math.random() * 9);
-                        if (arrInit[i] === "") {
-                            arrInit[i] = choosePlayer.mc;
-                            let score = minimax(0, false);
-                            arrInit[i] = "";
-
-                            if (score > bestScore) {
-                                bestScore = score;
-                                bestMove = i;
-                            }
-                            visited.push(i);
-                        }
-                    }
-
-                    return bestMove;
-                }
-
-                playersGuide(arrInit) {
-                    const choosePlayer = {
-                        mc: this.playAs === "x" ? "x" : "o",
-                        enemy: this.playAs !== "x" ? "x" : "o"
-                    }
-
-                    const isGameOver = () => {
-                        for (let i = 0; i < 9; i += 3) {
-                            if (arrInit[i] !== "" && arrInit[i] === arrInit[i+1] && arrInit[i] === arrInit[i+2]) {
-                                return true;
-                            }
-                        }
-
-                        for (let i = 0; i < 3; i++) {
-                            if (arrInit[i] !== "" && arrInit[i] === arrInit[i+3] && arrInit[i] === arrInit[i+6]) {
-                                return true;
-                            }
-                        }
-
-                        if (arrInit[0] !== "" && arrInit[0] === arrInit[4] && arrInit[0] === arrInit[8]) {
-                            return true;
-                        }
-
-                        if (arrInit[2] !== "" && arrInit[2] === arrInit[4] && arrInit[2] === arrInit[6]) {
-                            return true;
-                        }
-
-                        return arrInit.every(e => e !== "");
-                    }
-                    const evaluate = () => {
-                        for (let i = 0; i < 9; i += 3) {
-                            if (arrInit[i] !== "" && arrInit[i] === arrInit[i+1] && arrInit[i] === arrInit[i+2]) {
-                                if (arrInit[i] === this.playAs) {
-                                    return 10;
-                                } else {
-                                    return -10;
-                                }
-                            }
-                        }
-
-                        for (let i = 0; i < 3; i++) {
-                            if (arrInit[i] !== "" && arrInit[i] === arrInit[i+3] && arrInit[i] === arrInit[i+6]) {
-                                if (arrInit[i] === this.playAs) {
-                                    return 10;
-                                } else {
-                                    return -10;
-                                }
-                            }
-                        }
-
-                        if (arrInit[0] !== "" && arrInit[0] === arrInit[4] && arrInit[0] === arrInit[8]) {
-                            if (arrInit[0] === this.playAs) {
-                                return 10;
-                            } else {
-                                return -10;
-                            }
-                        }
-
-                        if (arrInit[2] !== "" && arrInit[2] === arrInit[4] && arrInit[2] === arrInit[6]) {
-                            if (arrInit[2] === this.playAs) {
-                                return 10;
-                            } else {
-                                return -10;
-                            }
-                        }
-
-                        return 0;
-                    }
-                    const minimax = (depth, isMax) => {
-                        if (isGameOver() === true || depth > 9) {
-                            return evaluate();
-                        }
-
-                        if (isMax === true) {
-                            let bestScore = -Infinity;
-                            for (let i = 0; i < 9; i++) {
-                                if (arrInit[i] === "") {
-                                    arrInit[i] = choosePlayer.mc;
-                                    bestScore = Math.max(bestScore, minimax(depth + 1, false));
-                                    arrInit[i] = "";
-                                }
-                            }
-
-                            return bestScore;
-                        } else {
-                            let bestScore = Infinity;
-                            for (let i = 0; i < 9; i++) {
-                                if (arrInit[i] === "") {
-                                    arrInit[i] = choosePlayer.enemy;
-                                    bestScore = Math.min(bestScore, minimax(depth + 1, true));
-                                    arrInit[i] = "";
-                                }
-                            }
-
-                            return bestScore;
-                        }
-                    }
-
-                    if (arrInit.every(e => e === "")) {
-                        return Math.floor(Math.random() * 9);
-                    }
-
-                    let bestScore = -Infinity;
-                    let bestMove;
-
-                    for (let i = 0; i < 9; i++) {
-                        if (arrInit[i] === "") {
-                            arrInit[i] = choosePlayer.mc;
-                            let score = minimax(0, false);
-                            arrInit[i] = "";
-
-                            if (score > bestScore) {
-                                bestScore = score;
-                                bestMove = i;
-                            }
-                        }
-                    }
-
-                    return bestMove;
-                }
-
-                handleClick(e) {
-                    const rect = layoutGame.getBoundingClientRect();
-                    const mouseX = e.clientX - rect.left;
-                    const mouseY = e.clientY - rect.top;
-                    
-                    const col = Math.floor(mouseX / cellSize);
-                    const row = Math.floor(mouseY / cellSize);
-
-                    return row * 3 + col;
-                }
-            }
-
-            class environmentGame {
-                constructor(playerList) {
-                    this.arrSys = new Array(9).fill("");
-                    this.playerList = Object.values(playerList).map(player => player.name);
-                    this.pickList = Object.values(playerList).map(player => player.playAs);
-                    this.turn = this.playerList[Math.floor(Math.random() * 2)];
-                    whosTurn.innerHTML = this.turn+"'s Turn!";
-                }
-
-                signingBox(index, sign) {
-                    if (this.arrSys[index] === "") {
-                        this.arrSys[index] = sign;
-                        this.switchPlayer();
-                    }
-                }
-
-                switchPlayer() {
-                    this.turn = this.playerList.filter(name => name !== this.turn)[0];
-                    whosTurn.innerHTML = this.turn+"'s Turn!";
-                }
-
-                detectLayout() {
-                    for (let i = 0; i < 9; i += 3) {
-                        if (this.arrSys[i] !== "" && this.arrSys[i] === this.arrSys[i+1] && this.arrSys[i] === this.arrSys[i+2]) {
-                            announcer.classList.add("designAnnouncer");
-                            announcer.innerHTML = this.playerList[this.pickList.findIndex(e => e === this.arrSys[i])]+" Win!!!";
-                            return true;
-                        }
-                    }
-
-                    for (let i = 0; i < 3; i++) {
-                        if (this.arrSys[i] !== "" && this.arrSys[i] === this.arrSys[i+3] && this.arrSys[i] === this.arrSys[i+6]) {
-                            announcer.classList.add("designAnnouncer");
-                            announcer.innerHTML = this.playerList[this.pickList.findIndex(e => e === this.arrSys[i])]+" Win!!!";
-                            return true;
-                        }
-                    }
-
-                    if (this.arrSys[0] !== "" && this.arrSys[0] === this.arrSys[4] && this.arrSys[0] === this.arrSys[8]) {
-                        announcer.classList.add("designAnnouncer");
-                        announcer.innerHTML = this.playerList[this.pickList.findIndex(e => e === this.arrSys[0])]+" Win!!!";
-                        return true;
-                    }
-
-                    if (this.arrSys[2] !== "" && this.arrSys[2] === this.arrSys[4] && this.arrSys[2] === this.arrSys[6]) {
-                        announcer.classList.add("designAnnouncer");
-                        announcer.innerHTML = this.playerList[this.pickList.findIndex(e => e === this.arrSys[2])]+" Win!!!";
-                        return true;
-                    }
-
-                    if (this.arrSys.every(e => e !== "")) {
-                        announcer.classList.add("designAnnouncer");
-                        announcer.innerHTML = "Round Draw!!!";
-                    }
-
-                    return this.arrSys.every(e => e !== "");
-                }
-
-                layout() {
-                    const draw = layoutGame.getContext("2d");
-                    
-                    draw.clearRect(0, 0, layoutGame.width, layoutGame.height);
-
-                    const drawX = (row, col) => {
-                        draw.beginPath();
-                        draw.moveTo(col * cellSize + 10, row * cellSize + 10);
-                        draw.lineTo((col + 1) * cellSize - 10, (row + 1) * cellSize - 10);
-                        draw.stroke();
-
-                        draw.beginPath();
-                        draw.moveTo((col + 1) * cellSize - 10, row * cellSize + 10);
-                        draw.lineTo(col * cellSize + 10, (row + 1) * cellSize - 10);
-                        draw.stroke();
-                    }
-
-                    const drawO = (row, col) => {
-                        draw.beginPath();
-                        draw.arc(col * cellSize + cellSize / 2, row * cellSize + cellSize / 2, cellSize / 2 - 10, 0, 2 * Math.PI);
-                        draw.stroke();
-                    }
-
-                    for (let i = 1; i < 3; i++) {
-                        draw.beginPath();
-                        draw.moveTo(i * cellSize, 0);
-                        draw.lineTo(i * cellSize, layoutGame.height);
-                        draw.strokeStyle = "white";
-                        draw.stroke();
-
-                        draw.beginPath();
-                        draw.moveTo(0, i * cellSize);
-                        draw.lineTo(layoutGame.width, i * cellSize);
-                        draw.strokeStyle = "white";
-                        draw.stroke();
-                    }
-                    
-                    for (let j = 0; j < this.arrSys.length; j++) {
-                        const row = Math.floor(j / 3);
-                        const col = j % 3;
-                        if (this.arrSys[j] === "x") {
-                            drawX(row, col);
-                        } else if (this.arrSys[j] === "o") {
-                            drawO(row, col);
-                        }
-                    }
-                }
-            }
-
-            const callPlayer = {};
-            callPlayer[chooseMode === "human" ? "P1" : "Player"] = new playerGame(chooseMode === "human" ? "P1" : "Player", chooseChar === "x" ? "x" : "o", "human");
-            callPlayer[chooseMode === "computer" ? "Computer" : "P2"] = new playerGame(chooseMode === "computer" ? "Computer" : "P2", chooseChar !== "x" ? "x" : "o", chooseMode);
-            const renderEnv = new environmentGame(callPlayer);
-
-            const engineGame = {
-                update : () => {
-                    stopGame = renderEnv.detectLayout();
-
-
-                    if (stopGame === true) {
-                        layoutGame.removeEventListener("click", clickEvent);
-                        document.removeEventListener("keydown", keyEvent);
-                        clearInterval(intervalID);
-                        setTimeout(() => window.location.reload(), 3000);
-                    } else {
-                        if (callPlayer[renderEnv.turn].role === "computer") {
-                            renderEnv.signingBox(callPlayer[renderEnv.turn].computerTurn(Array.from(renderEnv.arrSys)), callPlayer[renderEnv.turn].playAs);
-                        }
-                    }
-                },
-                render : () => {
-                    renderEnv.layout();
-                }
-            }
-
-            const clickEvent = (e) => {
-                renderEnv.signingBox(callPlayer[renderEnv.turn].handleClick(e), callPlayer[renderEnv.turn].playAs);
-            }
-
-            const keyEvent = (e) => {
-                if (e.key === "~") {
-                    if (callPlayer[renderEnv.turn].role === "human") {
-                        renderEnv.signingBox(callPlayer[renderEnv.turn].playersGuide(Array.from(renderEnv.arrSys)), callPlayer[renderEnv.turn].playAs);
-                    }
-                }
-            }
-
-            layoutGame.addEventListener("click", clickEvent);
-            document.addEventListener("keydown", keyEvent);
-
-            const fps = 60;
-            const intervalID = setInterval(() => {
-                engineGame.update();
-                engineGame.render();
-            }, 1000/60);
-        }
     </script>
 </body>
 </html>
