@@ -679,30 +679,32 @@
                         }
                     } else if (e.key === "c") {
                         if (canICheat === true) {
-                            renderEnv.isBlock = true;
-                            let cheatBox = document.createElement("code");
-                            cheatBox.classList.add("designCheat");
+                            if (!document.getElementById("cheatActivated")) {
+                                renderEnv.isBlock = true;
+                                let cheatBox = document.createElement("code");
+                                cheatBox.classList.add("designCheat");
 
-                            let text = "CHEAT :";
-                            cheatBox.textContent = text;
-                            cheatBox.appendChild(document.createElement("br"));
+                                let text = "CHEAT :";
+                                cheatBox.textContent = text;
+                                cheatBox.appendChild(document.createElement("br"));
 
-                            let inputText = document.createElement("input");
-                            inputText.setAttribute("placeholder", "Your Cheat Code Here");
-                            inputText.classList.add("designInputText");
+                                let inputText = document.createElement("input");
+                                inputText.setAttribute("placeholder", "Your Cheat Code Here");
+                                inputText.classList.add("designInputText");
 
-                            cheatBox.appendChild(inputText);
+                                cheatBox.appendChild(inputText);
 
-                            announcer.appendChild(cheatBox);
+                                announcer.appendChild(cheatBox);
 
-                            cheatBox.addEventListener("keypress", (e) => {
-                                if (e.key === "Enter") {
-                                    renderEnv.isBlock = false;
-                                    cheat(inputText.value);
-                                    inputText.value = "";
-                                    cheatBox.remove();
-                                }
-                            });
+                                cheatBox.addEventListener("keypress", (e) => {
+                                    if (e.key === "Enter") {
+                                        renderEnv.isBlock = false;
+                                        cheat(inputText.value);
+                                        inputText.value = "";
+                                        cheatBox.remove();
+                                    }
+                                });
+                            }
                         } else {
                             cheat("gotohell");
                         }

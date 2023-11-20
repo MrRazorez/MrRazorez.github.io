@@ -97,7 +97,7 @@
         </code>
         <code id="announcer"></code>
     </code>
-    <canvas id="layoutGame" width="600" height="600"></canvas>
+    <canvas id="layoutGame" width="700" height="700"></canvas>
     <code class="toGuide">
         <code id="whosTurn"></code><br><br>
         HOW TO PLAY? <br>
@@ -143,7 +143,7 @@
             });
 
             const startGame = (chooseChar, chooseMode) => {
-                const cellSize = 200;
+                const cellSize = (layoutGame.width / 300) * 100;
                 var stopGame = false;
 
                 class playerGame {
