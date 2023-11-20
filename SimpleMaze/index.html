@@ -53,6 +53,19 @@
             font-size: 13px;
             z-index: -1;
         }
+        .designCheat {
+            font-size: 25px;
+            text-align: center;
+            background-color: black;
+            padding: 50px;
+            border: 5px solid white;
+        }
+        .designInputText {
+            padding: 10px;
+            margin: 20px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
         body {
             background-color: black;
             color: white;
@@ -82,227 +95,173 @@
         </ul>
     </code>
     <script>
-        const layoutGame = document.getElementById("layoutGame");
-        const announcer = document.getElementById("announcer");
-        const isBoost = document.getElementById("isBoost");
-
         const sleep = (ms) => {
             return new Promise(resolve => setTimeout(resolve, ms));
         }
 
-        announcer.classList.add("designAnnouncer");
-        announcer.textContent = "GET READY!!";
+        const startGame = () => {
+            const layoutGame = document.getElementById("layoutGame");
+            const announcer = document.getElementById("announcer");
+            const isBoost = document.getElementById("isBoost");
 
-        setTimeout(async () => {
-            await announcer.classList.remove("designAnnouncer");
-            announcer.textContent = null;
-        }, 5000);
+            let canICheat = true;
 
-        let canICheat = true;
-
-        const createEmpty = (cols, rows) => {
-            const arr = [];
-            for (let i = 0; i < rows; i++) {
-                arr.push(new Array(cols).fill(1));
-            }
-
-            return arr;
-        }
-
-        const reverseString = (str) => {
-            const dictDirection = {
-                w : "s",
-                a : "d",
-                s : "w",
-                d : "a"
-            }
-
-            const revString = str.split("").reverse().map(char => dictDirection[char] || char).join("");
-
-
-            return revString;
-        }
-
-        class playerGame {
-            constructor() {
-                this.box = {
-                    width: 5,
-                    height: 5
-                };
-                this.pos = {
-                    X : Math.floor(Math.random() * (layoutGame.width/this.box.width)),
-                    Y : Math.floor(Math.random() * (layoutGame.height/this.box.height)),
-                };
-                this.direction = {
-                    up : [0,-1],
-                    down: [0,1],
-                    left: [-1,0],
-                    right: [1,0]
-                };
-            }
-
-            checkMove() {
-                return this.pos;
-            }
-        }
-
-        class environmentGame {
-            constructor() {
-                this.callPlayer = new playerGame();
-
-                this.arrSys = this.mazeGene();
-
-                this.sta = {
-                    X : this.callPlayer.pos.X,
-                    Y : this.callPlayer.pos.Y
+            const createEmpty = (cols, rows) => {
+                const arr = [];
+                for (let i = 0; i < rows; i++) {
+                    arr.push(new Array(cols).fill(1));
                 }
 
-                this.fin = this.randomFreePosition();
-                
-                this.arrSys[this.callPlayer.pos.Y][this.callPlayer.pos.X] = 2;
-                this.arrSys[this.fin.Y][this.fin.X] = 3;
-
-                this.dirtyRect = [];
-                this.animationID = null;
-                this.isNotOver = true;
+                return arr;
             }
 
-            engineGame() {
-                this.detectPlayer();
-                this.redrawDirtyRect();
-                this.animationID = requestAnimationFrame(this.engineGame.bind(this));
+            const reverseString = (str) => {
+                const dictDirection = {
+                    w : "s",
+                    a : "d",
+                    s : "w",
+                    d : "a"
+                }
+
+                const revString = str.split("").reverse().map(char => dictDirection[char] || char).join("");
+
+
+                return revString;
             }
 
-            randomFreePosition() {
-                let pos;
-                do {
-                    pos = {
-                        X : Math.floor(Math.random() * (layoutGame.width/this.callPlayer.box.width)),
-                        Y : Math.floor(Math.random() * (layoutGame.height/this.callPlayer.box.height))
+            class playerGame {
+                constructor() {
+                    this.box = {
+                        width: 5,
+                        height: 5
+                    };
+                    this.pos = {
+                        X : Math.floor(Math.random() * (layoutGame.width/this.box.width)),
+                        Y : Math.floor(Math.random() * (layoutGame.height/this.box.height)),
+                    };
+                    this.direction = {
+                        up : [0,-1],
+                        down: [0,1],
+                        left: [-1,0],
+                        right: [1,0]
+                    };
+                }
+
+                checkMove() {
+                    return this.pos;
+                }
+            }
+
+            class environmentGame {
+                constructor() {
+                    this.callPlayer = new playerGame();
+
+                    this.arrSys = this.mazeGene();
+
+                    this.sta = {
+                        X : this.callPlayer.pos.X,
+                        Y : this.callPlayer.pos.Y
                     }
-                } while ((pos.X === this.callPlayer.pos.X && pos.Y === this.callPlayer.pos.Y ) || this.arrSys[pos.Y][pos.X] === 1 || this.checkOneDir(pos) === true);
 
-                return pos;
-            }
+                    this.fin = this.randomFreePosition();
+                    
+                    this.arrSys[this.callPlayer.pos.Y][this.callPlayer.pos.X] = 2;
+                    this.arrSys[this.fin.Y][this.fin.X] = 3;
 
-            checkOneDir(pos) {
-                const direction = {
-                    up : [0,-1],
-                    down: [0,1],
-                    left: [-1,0],
-                    right: [1,0]
-                };
-
-                var res = [];
-
-                for (const [key, value] of Object.entries(direction)) {
-                    res.push(this.arrSys[pos.Y + value[1]][pos.X + value[0]]);
+                    this.dirtyRect = [];
+                    this.isNotOver = true;
+                    this.isBlock = false;
                 }
 
-                res = res.filter(e => e === 0);
+                engineGame() {
+                    if (this.isNotOver === true) {
+                        this.detectPlayer();
+                        this.redrawDirtyRect();
+                        requestAnimationFrame(this.engineGame.bind(this));
+                    }
+                }
 
-                return res.length >= 2;
-            }
-
-            mazeGene() {
-                const width = layoutGame.width/this.callPlayer.box.width;
-                const height = layoutGame.height/this.callPlayer.box.height;
-
-                const maze = createEmpty(width, height);
-                const stack = [];
-                stack.push({
-                    X : this.callPlayer.pos.X,
-                    Y : this.callPlayer.pos.Y
-                });
-                maze[this.callPlayer.pos.Y][this.callPlayer.pos.X] = 0;
-                const directs = [[-2, 0], [2, 0], [0, -2], [0, 2]];
-
-                while (stack.length > 0) {
-                    const curr = stack[stack.length - 1];
-                    const x = curr.X;
-                    const y = curr.Y;
-
-                    const neighbors = [];
-
-                    for (const [dX, dY] of directs) {
-                        const newX = x + dX;
-                        const newY = y + dY;
-
-                        if ((newX > 0 && newX < width - 1 && newY > 0 && newY < height - 1) && maze[newY][newX] === 1) {
-                            neighbors.push({
-                                X : newX, Y : newY
-                            });
+                randomFreePosition() {
+                    let pos;
+                    do {
+                        pos = {
+                            X : Math.floor(Math.random() * (layoutGame.width/this.callPlayer.box.width)),
+                            Y : Math.floor(Math.random() * (layoutGame.height/this.callPlayer.box.height))
                         }
-                    }
+                    } while ((pos.X === this.callPlayer.pos.X && pos.Y === this.callPlayer.pos.Y ) || this.arrSys[pos.Y][pos.X] === 1 || this.checkOneDir(pos) === true);
 
-                    if (neighbors.length === 0) {
-                        stack.pop();
-                    } else {
-                        const N = neighbors[Math.floor(Math.random() * neighbors.length)];
-                        const nX = N.X;
-                        const nY = N.Y;
-
-                        maze[(nY + y) / 2][(nX + x) / 2] = 0;
-                        stack.push({ X : nX, Y : nY });
-                        maze[nY][nX] = 0;
-                    }
+                    return pos;
                 }
 
-                return maze;
-            }
+                checkOneDir(pos) {
+                    const direction = {
+                        up : [0,-1],
+                        down: [0,1],
+                        left: [-1,0],
+                        right: [1,0]
+                    };
 
-            mazeFindPath() {
-                const width = layoutGame.width/this.callPlayer.box.width;
-                const height = layoutGame.height/this.callPlayer.box.height;
-
-                const stack = [];
-                const visited = Array.from({ length: height }, () => Array(width).fill(false));
-                const direction = {
-                    up : [0,-1,"w"],
-                    down: [0,1,"s"],
-                    left: [-1,0,"a"],
-                    right: [1,0,"d"]
-                };
-
-                stack.push({
-                    X : this.callPlayer.pos.X,
-                    Y : this.callPlayer.pos.Y,
-                    move : ""
-                });
-
-                while (stack.length > 0) {
-                    const curr = stack.pop();
-                    const { X : startX, Y : startY, move : startMove } = curr;
-
-                    if (this.arrSys[startY][startX] === 3) {
-                        return [startMove];
-                    }
+                    var res = [];
 
                     for (const [key, value] of Object.entries(direction)) {
-                        const nextX = startX + value[0];
-                        const nextY = startY + value[1];
-                        const nextMove = startMove + value[2];
-
-                        if ((nextX >= 0 && nextX < width && nextY >= 0 && nextY < height) && (this.arrSys[nextY][nextX] === 0 || this.arrSys[nextY][nextX] === 2 || this.arrSys[nextY][nextX] === 3) && visited[nextY][nextX] === false) {
-                            visited[startY][startX] = true;
-                            stack.push({
-                                X : nextX,
-                                Y : nextY,
-                                move : nextMove
-                            });
-                        }
+                        res.push(this.arrSys[pos.Y + value[1]][pos.X + value[0]]);
                     }
+
+                    res = res.filter(e => e === 0);
+
+                    return res.length >= 2;
                 }
 
-                return [""];
-            }
-
-            mazeFindPathForPunishment() {
-                if (this.callPlayer.pos.X !== this.sta.X && this.callPlayer.pos.Y !== this.sta.Y) {
+                mazeGene() {
                     const width = layoutGame.width/this.callPlayer.box.width;
                     const height = layoutGame.height/this.callPlayer.box.height;
 
-                    this.arrSys[this.sta.Y][this.sta.X] = 4;
+                    const maze = createEmpty(width, height);
+                    const stack = [];
+                    stack.push({
+                        X : this.callPlayer.pos.X,
+                        Y : this.callPlayer.pos.Y
+                    });
+                    maze[this.callPlayer.pos.Y][this.callPlayer.pos.X] = 0;
+                    const directs = [[-2, 0], [2, 0], [0, -2], [0, 2]];
+
+                    while (stack.length > 0) {
+                        const curr = stack[stack.length - 1];
+                        const x = curr.X;
+                        const y = curr.Y;
+
+                        const neighbors = [];
+
+                        for (const [dX, dY] of directs) {
+                            const newX = x + dX;
+                            const newY = y + dY;
+
+                            if ((newX > 0 && newX < width - 1 && newY > 0 && newY < height - 1) && maze[newY][newX] === 1) {
+                                neighbors.push({
+                                    X : newX, Y : newY
+                                });
+                            }
+                        }
+
+                        if (neighbors.length === 0) {
+                            stack.pop();
+                        } else {
+                            const N = neighbors[Math.floor(Math.random() * neighbors.length)];
+                            const nX = N.X;
+                            const nY = N.Y;
+
+                            maze[(nY + y) / 2][(nX + x) / 2] = 0;
+                            stack.push({ X : nX, Y : nY });
+                            maze[nY][nX] = 0;
+                        }
+                    }
+
+                    return maze;
+                }
+
+                mazeFindPath() {
+                    const width = layoutGame.width/this.callPlayer.box.width;
+                    const height = layoutGame.height/this.callPlayer.box.height;
 
                     const stack = [];
                     const visited = Array.from({ length: height }, () => Array(width).fill(false));
@@ -323,7 +282,7 @@
                         const curr = stack.pop();
                         const { X : startX, Y : startY, move : startMove } = curr;
 
-                        if (this.arrSys[startY][startX] === 4) {
+                        if (this.arrSys[startY][startX] === 3) {
                             return [startMove];
                         }
 
@@ -332,7 +291,7 @@
                             const nextY = startY + value[1];
                             const nextMove = startMove + value[2];
 
-                            if ((nextX >= 0 && nextX < width && nextY >= 0 && nextY < height) && (this.arrSys[nextY][nextX] === 0 || this.arrSys[nextY][nextX] === 2 || this.arrSys[nextY][nextX] === 3 || this.arrSys[nextY][nextX] === 4) && visited[nextY][nextX] === false) {
+                            if ((nextX >= 0 && nextX < width && nextY >= 0 && nextY < height) && (this.arrSys[nextY][nextX] === 0 || this.arrSys[nextY][nextX] === 2 || this.arrSys[nextY][nextX] === 3) && visited[nextY][nextX] === false) {
                                 visited[startY][startX] = true;
                                 stack.push({
                                     X : nextX,
@@ -342,67 +301,114 @@
                             }
                         }
                     }
+
+                    return [""];
                 }
 
-                return [""];
-            }
+                mazeFindPathForPunishment() {
+                    if (this.callPlayer.pos.X !== this.sta.X && this.callPlayer.pos.Y !== this.sta.Y) {
+                        const width = layoutGame.width/this.callPlayer.box.width;
+                        const height = layoutGame.height/this.callPlayer.box.height;
 
-            movePlayer(key) {
-                this.dirtyRect = [];
-                const prevPos = {
-                    X : this.callPlayer.pos.X,
-                    Y : this.callPlayer.pos.Y
-                };
-                this.arrSys[prevPos.Y][prevPos.X] = 0;
-                this.dirtyRect.push({
-                    X : prevPos.X,
-                    Y : prevPos.Y,
-                    color : 0
-                });
+                        this.arrSys[this.sta.Y][this.sta.X] = 4;
 
-                const dictMove = {
-                    w : "up",
-                    a : "left",
-                    s : "down",
-                    d : "right"
-                };
-                const move = this.callPlayer.direction[dictMove[key]];
-                this.callPlayer.pos.X = (this.callPlayer.pos.X + move[0] + layoutGame.width / this.callPlayer.box.width) % (layoutGame.width / this.callPlayer.box.width);
-                this.callPlayer.pos.Y = (this.callPlayer.pos.Y + move[1] + layoutGame.height / this.callPlayer.box.height) % (layoutGame.height / this.callPlayer.box.height);
+                        const stack = [];
+                        const visited = Array.from({ length: height }, () => Array(width).fill(false));
+                        const direction = {
+                            up : [0,-1,"w"],
+                            down: [0,1,"s"],
+                            left: [-1,0,"a"],
+                            right: [1,0,"d"]
+                        };
 
-                if (renderEnv.arrSys[this.callPlayer.pos.Y][this.callPlayer.pos.X] === 1) {
-                    this.callPlayer.pos = prevPos;
+                        stack.push({
+                            X : this.callPlayer.pos.X,
+                            Y : this.callPlayer.pos.Y,
+                            move : ""
+                        });
+
+                        while (stack.length > 0) {
+                            const curr = stack.pop();
+                            const { X : startX, Y : startY, move : startMove } = curr;
+
+                            if (this.arrSys[startY][startX] === 4) {
+                                return [startMove];
+                            }
+
+                            for (const [key, value] of Object.entries(direction)) {
+                                const nextX = startX + value[0];
+                                const nextY = startY + value[1];
+                                const nextMove = startMove + value[2];
+
+                                if ((nextX >= 0 && nextX < width && nextY >= 0 && nextY < height) && (this.arrSys[nextY][nextX] === 0 || this.arrSys[nextY][nextX] === 2 || this.arrSys[nextY][nextX] === 3 || this.arrSys[nextY][nextX] === 4) && visited[nextY][nextX] === false) {
+                                    visited[startY][startX] = true;
+                                    stack.push({
+                                        X : nextX,
+                                        Y : nextY,
+                                        move : nextMove
+                                    });
+                                }
+                            }
+                        }
+                    }
+
+                    return [""];
                 }
 
-                if (this.callPlayer.pos.X < 0) {
-                    this.callPlayer.pos.X = (layoutGame.width / this.callPlayer.box.width) - 1;
-                } else if (this.callPlayer.pos.X > (layoutGame.width / this.callPlayer.width) - 1) {
-                    this.callPlayer.pos.X = 0;
+                movePlayer(key) {
+                    this.dirtyRect = [];
+                    const prevPos = {
+                        X : this.callPlayer.pos.X,
+                        Y : this.callPlayer.pos.Y
+                    };
+                    this.arrSys[prevPos.Y][prevPos.X] = 0;
+                    this.dirtyRect.push({
+                        X : prevPos.X,
+                        Y : prevPos.Y,
+                        color : 0
+                    });
+
+                    const dictMove = {
+                        w : "up",
+                        a : "left",
+                        s : "down",
+                        d : "right"
+                    };
+                    const move = this.callPlayer.direction[dictMove[key]];
+                    this.callPlayer.pos.X = (this.callPlayer.pos.X + move[0] + layoutGame.width / this.callPlayer.box.width) % (layoutGame.width / this.callPlayer.box.width);
+                    this.callPlayer.pos.Y = (this.callPlayer.pos.Y + move[1] + layoutGame.height / this.callPlayer.box.height) % (layoutGame.height / this.callPlayer.box.height);
+
+                    if (this.arrSys[this.callPlayer.pos.Y][this.callPlayer.pos.X] === 1) {
+                        this.callPlayer.pos = prevPos;
+                    }
+
+                    if (this.callPlayer.pos.X < 0) {
+                        this.callPlayer.pos.X = (layoutGame.width / this.callPlayer.box.width) - 1;
+                    } else if (this.callPlayer.pos.X > (layoutGame.width / this.callPlayer.width) - 1) {
+                        this.callPlayer.pos.X = 0;
+                    }
+
+                    if (this.callPlayer.pos.Y < 0) {
+                        this.callPlayer.pos.Y = (layoutGame.height / this.callPlayer.box.height) - 1;
+                    } else if (this.callPlayer.pos.Y > (layoutGame.height / this.callPlayer.box.height) - 1) {
+                        this.callPlayer.pos.Y = 0;
+                    }
+
+                    this.arrSys[this.callPlayer.pos.Y][this.callPlayer.pos.X] = 2;
+                    this.dirtyRect.push({
+                        X : this.callPlayer.pos.X,
+                        Y : this.callPlayer.pos.Y,
+                        color : 2
+                    });
                 }
 
-                if (this.callPlayer.pos.Y < 0) {
-                    this.callPlayer.pos.Y = (layoutGame.height / this.callPlayer.box.height) - 1;
-                } else if (this.callPlayer.pos.Y > (layoutGame.height / this.callPlayer.box.height) - 1) {
-                    this.callPlayer.pos.Y = 0;
-                }
-
-                this.arrSys[this.callPlayer.pos.Y][this.callPlayer.pos.X] = 2;
-                this.dirtyRect.push({
-                    X : this.callPlayer.pos.X,
-                    Y : this.callPlayer.pos.Y,
-                    color : 2
-                });
-            }
-
-            detectPlayer() {
-                if (this.isNotOver === true) {
+                detectPlayer() {
                     if (this.callPlayer.pos.X === this.fin.X && this.callPlayer.pos.Y === this.fin.Y) {
                         document.removeEventListener("keydown", keyBindEvent);
                         document.removeEventListener("keyup", keyBindEvent);
                         announcer.classList.add("designAnnouncer");
                         announcer.textContent = "YOU WIN!!";
                         delete window.commandPlayer;
-                        cancelAnimationFrame(this.animationID);
                         this.isNotOver = false;
                         
                         setTimeout(async () => {
@@ -410,288 +416,325 @@
                         }, 3000);
                     }
                 }
-            }
 
-            coloring(col) {
-                switch (col) {
-                    case 0:
-                        return "#000000";
-                    case 1:
-                        return "#404040";
-                    case 2:
-                        return "#FF3D3D";
-                    case 3:
-                        return "#0051FF";
-                    default:
-                        return "#000000";
-                }
-            }
-
-            layout() {
-                const draw = layoutGame.getContext("2d");
-
-                this.arrSys.forEach((row, i) => {
-                    row.forEach((col, j) => {
-                        draw.fillStyle = this.coloring(col);
-
-                        const X = j * this.callPlayer.box.width;
-                        const Y = i * this.callPlayer.box.height;
-
-                        draw.fillRect(X, Y, this.callPlayer.box.width, this.callPlayer.box.height);
-                    });
-                });
-            }
-
-            redrawDirtyRect() {
-                const draw = layoutGame.getContext("2d");
-
-                this.dirtyRect.forEach(rect => {
-                    draw.fillStyle = this.coloring(rect.color);
-                    draw.fillRect(rect.X * this.callPlayer.box.width, rect.Y * this.callPlayer.box.height, this.callPlayer.box.width, this.callPlayer.box.height);
-                });
-            }
-        }
-
-        const renderEnv = new environmentGame();
-
-        var boostPlayer = false;
-        const activateBoost = () => {
-            if (canICheat === true) {
-                boostPlayer = !boostPlayer;
-
-                if (boostPlayer) {
-                    document.addEventListener("keyup", keyBindEvent);
-                    isBoost.textContent = "BOOST MODE ON";
-                } else {
-                    document.removeEventListener("keyup", keyBindEvent);
-                    isBoost.textContent = "BOOST MODE OFF";
-                }
-            } else {
-                cheat("gotohell");
-            }
-        }
-
-        commandPlayer = {
-            manual : (stringEvent) => {
-                if (boostPlayer === true) {
-                    activateBoost();
-                }
-
-                let curr = 0;
-
-                const animatePlayer = () => {
-                    if (curr < stringEvent.length) {
-                        const e = {key:stringEvent[curr]};
-                        keyBindEvent(e);
-                        renderEnv.detectPlayer();
-                        renderEnv.redrawDirtyRect();
-                        curr++;
-                        requestAnimationFrame(animatePlayer);
-                    }
-                }
-
-                animatePlayer();
-            },
-            auto : () => {
-                if (boostPlayer === true) {
-                    activateBoost();
-                }
-
-                var commandAI = renderEnv.mazeFindPath();
-                var stringEvent;
-
-                if (commandAI[0].length > 40) {
-                    stringEvent = commandAI[0].slice(0, 40);
-                    stringEvent += reverseString(stringEvent);
-                } else {
-                    if (!document.getElementById("cheatActivated")) {
-                        let cheat = document.createElement("code");
-                        cheat.id = "cheatActivated";
-                        cheat.style.fontSize = "25px";
-                        cheat.style.textAlign = "center";
-                        cheat.style.backgroundColor = "black";
-                        cheat.style.padding = "50px";
-                        cheat.style.border = "5px solid white";
-
-                        let text = "Limited Range.";
-                        cheat.textContent = text;
-
-                        announcer.appendChild(cheat);
-                        setTimeout(async () => await cheat.remove(), 3000);
-                    }
-                }
-
-                let curr = 0;
-
-                const animatePlayer = () => {
-                    if (curr < stringEvent.length) {
-                        const e = {key:stringEvent[curr]};
-                        keyBindEvent(e);
-                        renderEnv.detectPlayer();
-                        renderEnv.redrawDirtyRect();
-                        curr++;
-                        requestAnimationFrame(animatePlayer);
-                    }
-                }
-
-                animatePlayer();
-            }
-        };
-
-        const cheat = (thisIsString) => {
-            if (!document.getElementById("cheatActivated")) {
-                if (canICheat === true) {
-                    let cheat = document.createElement("code");
-                    cheat.id = "cheatActivated";
-                    cheat.style.fontSize = "25px";
-                    cheat.style.textAlign = "center";
-                    cheat.style.backgroundColor = "black";
-                    cheat.style.padding = "50px";
-                    cheat.style.border = "5px solid white";
-
-                    let text;
-
-                    switch (thisIsString) {
-                        case "givemeasign" :
-                            commandPlayer.auto();
-                            break;
-
-                        case "givemeadistance" :
-                            text = "The distance you will cover is approximately ";
-                            var distance = renderEnv.mazeFindPath()[0].length;
-
-                            if (distance >= 1000) {
-                                distance = distance / 1000.00;
-                                text = text + distance.toFixed(2) + " km. I suggest you to give up. HAHAHAHAHAHA....";
-                            } else {
-                                text = text + distance + " m.";
-                            }
-                            cheat.textContent = text;
-                            break;
-
-                        case "makeiteasy" :
-                            text = "You can continue this game when the distance to the finish line has reached ";
-                            var command = renderEnv.mazeFindPath()[0];
-                            var distance = 0;
-                            var digit = "1";
-
-                            for (let i = 1; i < String(command.length).length; i++) {
-                                digit += "0";
-                            }
-
-                            digit = Number(digit);
-
-                            if (command.length > 1000 && command.length - (Math.floor(command.length / 1000) * 1000) > 0) {
-                                let tempLength = command.length;
-                                distance = Math.floor(command.length / 1000) * 1000;
-                                command = command.slice(0, distance);
-
-                                commandPlayer.manual(command);
-
-                                text += `${tempLength - distance} m`;
-                                cheat.textContent = text;
-                            } else if (command.length > 100 && command.length - (Math.floor(command.length / 100) * 100) > 0) {
-                                let tempLength = command.length;
-                                distance = Math.floor(command.length / 100) * 100;
-                                command = command.slice(0, distance);
-
-                                commandPlayer.manual(command);
-
-                                text += `${tempLength - distance} m`;
-                                cheat.textContent = text;
-                            } else if (command.length <= 100) {
-                                text = "Are you moron?";
-                                command = renderEnv.mazeFindPathForPunishment()[0];
-
-                                commandPlayer.manual(command);
-                                canICheat = false;
-
-                                cheat.textContent = text;
-                            } else if (command.length - (Math.floor(command.length / digit) * digit) === 0) {
-                                text = "I suggest pressing ' Shift + ~ '. Because the program reads that if your cheat is detected, it can make you unable to play the game, meaning your character will be controlled by the system until the finish.";
-
-                                cheat.textContent = text;
-                            }
-                            break;
-                    
+                coloring(col) {
+                    switch (col) {
+                        case 0:
+                            return "#000000";
+                        case 1:
+                            return "#404040";
+                        case 2:
+                            return "#FF3D3D";
+                        case 3:
+                            return "#0051FF";
                         default:
-                            text = "???"
-                            cheat.textContent = text;
-                            break;
+                            return "#000000";
                     }
+                }
 
-                    if (thisIsString !== "givemeasign") {
-                        announcer.appendChild(cheat);
-                        setTimeout(async () => await cheat.remove(), 3000);
-                    } else {
-                        cheat.remove();
-                    }
-                } else {
-                    let cheat = document.createElement("code");
-                    cheat.id = "cheatActivated";
-                    cheat.style.fontSize = "25px";
-                    cheat.style.textAlign = "center";
-                    cheat.style.backgroundColor = "black";
-                    cheat.style.padding = "50px";
-                    cheat.style.border = "5px solid white";
+                layout() {
+                    const draw = layoutGame.getContext("2d");
 
-                    let text = "GO TO HELL!!";
-                    cheat.textContent = text;
+                    this.arrSys.forEach((row, i) => {
+                        row.forEach((col, j) => {
+                            draw.fillStyle = this.coloring(col);
 
-                    announcer.appendChild(cheat);
-                    setTimeout(async () => await cheat.remove(), 3000);
+                            const X = j * this.callPlayer.box.width;
+                            const Y = i * this.callPlayer.box.height;
+
+                            draw.fillRect(X, Y, this.callPlayer.box.width, this.callPlayer.box.height);
+                        });
+                    });
+                }
+
+                redrawDirtyRect() {
+                    const draw = layoutGame.getContext("2d");
+
+                    this.dirtyRect.forEach(rect => {
+                        draw.fillStyle = this.coloring(rect.color);
+                        draw.fillRect(rect.X * this.callPlayer.box.width, rect.Y * this.callPlayer.box.height, this.callPlayer.box.width, this.callPlayer.box.height);
+                    });
                 }
             }
-        }
 
-        const keyBindEvent = (e) => {
-            const direction = ["w", "a", "s", "d"];
+            const renderEnv = new environmentGame();
 
-            if (e.key === "~") {
-                if (canICheat === true) {
-                    if (!document.getElementById("cheatActivated")) {
-                        let cheat = document.createElement("code");
-                        cheat.id = "cheatActivated";
-                        cheat.style.fontSize = "25px";
-                        cheat.style.textAlign = "center";
-                        cheat.style.backgroundColor = "black";
-                        cheat.style.padding = "50px";
-                        cheat.style.border = "5px solid white";
+            var boostPlayer = false;
+            const activateBoost = () => {
+                if (renderEnv.isBlock === false) {
+                    if (canICheat === true) {
+                        boostPlayer = !boostPlayer;
 
-                        let text = "You should turn ";
-
-                        if (renderEnv.mazeFindPath()[0][0] === "w") {
-                            text += "UP";
-                        } else if (renderEnv.mazeFindPath()[0][0] === "a") {
-                            text += "LEFT";
-                        } else if (renderEnv.mazeFindPath()[0][0] === "s") {
-                            text += "DOWN";
-                        } else if (renderEnv.mazeFindPath()[0][0] === "d") {
-                            text += "RIGHT";
+                        if (boostPlayer) {
+                            document.addEventListener("keyup", keyBindEvent);
+                            isBoost.textContent = "BOOST MODE ON";
+                        } else {
+                            document.removeEventListener("keyup", keyBindEvent);
+                            isBoost.textContent = "BOOST MODE OFF";
                         }
-                        cheat.textContent = text;
-
-                        announcer.appendChild(cheat);
-                        setTimeout(async () => await cheat.remove(), 3000);
+                    } else {
+                        cheat("gotohell");
                     }
-                } else {
-                    cheat("gotohell");
                 }
-            } else if (direction.findIndex(component => component === e.key) !== -1) {
-                renderEnv.movePlayer(e.key);
             }
+
+            commandPlayer = {
+                manual : (stringEvent) => {
+                    if (boostPlayer === true) {
+                        activateBoost();
+                    }
+
+                    renderEnv.isBlock = true;
+                    let curr = 0;
+
+                    const animatePlayer = () => {
+                        if (curr < stringEvent.length) {
+                            const e = {key:stringEvent[curr]};
+                            keyBindEvent(e, true);
+                            renderEnv.detectPlayer();
+                            renderEnv.redrawDirtyRect();
+                            curr++;
+                            requestAnimationFrame(animatePlayer);
+                        } else {
+                            renderEnv.isBlock = false;
+                        }
+                    }
+
+                    animatePlayer();
+                },
+                auto : () => {
+                    if (boostPlayer === true) {
+                        activateBoost();
+                    }
+
+                    renderEnv.isBlock = true;
+                    var commandAI = renderEnv.mazeFindPath();
+                    var stringEvent;
+
+                    if (commandAI[0].length > 40) {
+                        stringEvent = commandAI[0].slice(0, 40);
+                        stringEvent += reverseString(stringEvent);
+                    } else {
+                        if (!document.getElementById("cheatActivated")) {
+                            let cheatBox = document.createElement("code");
+                            cheatBox.id = "cheatActivated";
+                            cheatBox.classList.add("designCheat");
+
+                            let text = "Limited Range.";
+                            cheatBox.textContent = text;
+
+                            announcer.appendChild(cheatBox);
+                            setTimeout(async () => await cheatBox.remove(), 3000);
+                        }
+                        renderEnv.isBlock = false;
+                    }
+
+                    let curr = 0;
+
+                    const animatePlayer = () => {
+                        if (curr < stringEvent.length) {
+                            const e = {key:stringEvent[curr]};
+                            keyBindEvent(e, true);
+                            renderEnv.detectPlayer();
+                            renderEnv.redrawDirtyRect();
+                            curr++;
+                            requestAnimationFrame(animatePlayer);
+                        } else {
+                            renderEnv.isBlock = false;
+                        }
+                    }
+
+                    animatePlayer();
+                }
+            };
+
+            const cheat = (thisIsString) => {
+                if (!document.getElementById("cheatActivated")) {
+                    if (canICheat === true) {
+                        let cheatBox = document.createElement("code");
+                        cheatBox.id = "cheatActivated";
+                        cheatBox.classList.add("designCheat");
+
+                        let text;
+
+                        switch (thisIsString) {
+                            case "givemeasign" :
+                                commandPlayer.auto();
+                                break;
+
+                            case "givemeadistance" :
+                                text = "The distance you will cover is approximately ";
+                                var distance = renderEnv.mazeFindPath()[0].length;
+
+                                if (distance >= 1000) {
+                                    distance = distance / 1000.00;
+                                    text = text + distance.toFixed(2) + " km. I suggest you to give up. HAHAHAHAHAHA....";
+                                } else {
+                                    text = text + distance + " m.";
+                                }
+                                cheatBox.textContent = text;
+                                break;
+
+                            case "makeiteasy" :
+                                text = "You can continue this game when the distance to the finish line has reached ";
+                                var command = renderEnv.mazeFindPath()[0];
+                                var distance = 0;
+                                var digit = "1";
+
+                                for (let i = 1; i < String(command.length).length; i++) {
+                                    digit += "0";
+                                }
+
+                                digit = Number(digit);
+
+                                if (command.length > 1000 && command.length - (Math.floor(command.length / 1000) * 1000) > 0) {
+                                    let tempLength = command.length;
+                                    distance = Math.floor(command.length / 1000) * 1000;
+                                    command = command.slice(0, distance);
+
+                                    commandPlayer.manual(command);
+
+                                    text += `${tempLength - distance} m`;
+                                    cheatBox.textContent = text;
+                                } else if (command.length > 100 && command.length - (Math.floor(command.length / 100) * 100) > 0) {
+                                    let tempLength = command.length;
+                                    distance = Math.floor(command.length / 100) * 100;
+                                    command = command.slice(0, distance);
+
+                                    commandPlayer.manual(command);
+
+                                    text += `${tempLength - distance} m`;
+                                    cheatBox.textContent = text;
+                                } else if (command.length <= 100) {
+                                    text = "Are you moron?";
+                                    command = renderEnv.mazeFindPathForPunishment()[0];
+
+                                    commandPlayer.manual(command);
+                                    canICheat = false;
+
+                                    cheatBox.textContent = text;
+                                } else if (command.length - (Math.floor(command.length / digit) * digit) === 0) {
+                                    text = "I suggest pressing ' Shift + ~ '. Because the program reads that if your cheat is detected, it can make you unable to play the game, meaning your character will be controlled by the system until the finish.";
+
+                                    cheatBox.textContent = text;
+                                }
+                                break;
+                        
+                            default:
+                                text = "???"
+                                cheatBox.textContent = text;
+                                break;
+                        }
+
+                        if (thisIsString !== "givemeasign") {
+                            announcer.appendChild(cheatBox);
+                            setTimeout(async () => await cheatBox.remove(), 3000);
+                        } else {
+                            cheatBox.remove();
+                        }
+                    } else {
+                        let cheatBox = document.createElement("code");
+                        cheatBox.id = "cheatActivated";
+                        cheatBox.classList.add("designCheat");
+
+                        let text = "GO TO HELL!!";
+                        cheatBox.textContent = text;
+
+                        announcer.appendChild(cheatBox);
+                        setTimeout(async () => await cheatBox.remove(), 3000);
+                    }
+                }
+            }
+
+            const keyBindEvent = (e, isAI = false) => {
+                if (renderEnv.isBlock === false || isAI === true) {
+                    const direction = ["w", "a", "s", "d"];
+
+                    if (e.key === "~") {
+                        if (canICheat === true) {
+                            if (!document.getElementById("cheatActivated")) {
+                                let cheatBox = document.createElement("code");
+                                cheatBox.id = "cheatActivated";
+                                cheatBox.classList.add("designCheat");
+
+                                let text = "You should turn ";
+                                const sign = renderEnv.mazeFindPath()[0][0];
+
+                                if (sign === "w") {
+                                    text += "UP";
+                                } else if (sign === "a") {
+                                    text += "LEFT";
+                                } else if (sign === "s") {
+                                    text += "DOWN";
+                                } else if (sign === "d") {
+                                    text += "RIGHT";
+                                }
+                                cheatBox.textContent = text;
+
+                                announcer.appendChild(cheatBox);
+                                setTimeout(async () => await cheatBox.remove(), 3000);
+                            }
+                        } else {
+                            cheat("gotohell");
+                        }
+                    } else if (e.key === "c") {
+                        if (canICheat === true) {
+                            renderEnv.isBlock = true;
+                            let cheatBox = document.createElement("code");
+                            cheatBox.classList.add("designCheat");
+
+                            let text = "CHEAT :";
+                            cheatBox.textContent = text;
+                            cheatBox.appendChild(document.createElement("br"));
+
+                            let inputText = document.createElement("input");
+                            inputText.setAttribute("placeholder", "Your Cheat Code Here");
+                            inputText.classList.add("designInputText");
+
+                            cheatBox.appendChild(inputText);
+
+                            announcer.appendChild(cheatBox);
+
+                            cheatBox.addEventListener("keypress", (e) => {
+                                if (e.key === "Enter") {
+                                    renderEnv.isBlock = false;
+                                    cheat(inputText.value);
+                                    inputText.value = "";
+                                    cheatBox.remove();
+                                }
+                            });
+                        } else {
+                            cheat("gotohell");
+                        }
+                    } else if (direction.findIndex(component => component === e.key) !== -1) {
+                        renderEnv.movePlayer(e.key);
+                    }
+                }
+            }
+
+            const gameLooping = () => {
+                document.addEventListener("keydown", keyBindEvent);
+                layoutGame.addEventListener("click", activateBoost);
+
+                renderEnv.layout();
+                renderEnv.engineGame();
+            }
+
+            gameLooping();
         }
 
-        const gameLooping = async () => {
+        (async () => {
+            document.getElementById("announcer").classList.add("designAnnouncer");
+            document.getElementById("announcer").textContent = "GET READY!!";
+
+            setTimeout(async () => {
+                await document.getElementById("announcer").classList.remove("designAnnouncer");
+                document.getElementById("announcer").textContent = null;
+            }, 5000);
+
             await sleep(5000);
-            document.addEventListener("keydown", keyBindEvent);
-            layoutGame.addEventListener("click", activateBoost);
-
-            renderEnv.layout();
-            renderEnv.engineGame();
-        }
-
-        gameLooping();
+            startGame();
+        })();
 
     </script>
 </body>

@@ -526,6 +526,22 @@
                         }
                     }
 
+                    systemEngine(e = {}, isFromTilda = false) {
+                        if (this.callPlayer[this.turn].role === "computer") {
+                            this.signingBox(this.callPlayer[this.turn].computerTurn(Array.from(this.arrSys)));
+                        } else if (this.callPlayer[this.turn].role === "human" && isFromTilda === true) {
+                            this.signingBox(this.callPlayer[this.turn].playersGuide(Array.from(this.arrSys)));
+                        } else {
+                            this.signingBox(this.callPlayer[this.turn].handleClick(e));
+                        }
+                        this.switchPlayer();
+                    }
+
+                    renderEngine() {
+                        this.layout();
+                        this.update();
+                    }
+
                     async update() {
                         stopGame = this.detectLayout();
 
@@ -542,31 +558,23 @@
                                 announcer.textContent = null;
                             }, timer);
                             await sleep(timer);
-                            this.signingBox(this.callPlayer[this.turn].computerTurn(Array.from(this.arrSys)));
-                            this.switchPlayer();
-                            this.layout();
-                            this.update();
+                            this.systemEngine();
+                            this.renderEngine();
                         }
                     }
 
                     clickEvent(e) {
                         if (this.isBlock === false) {
-                            this.signingBox(this.callPlayer[this.turn].handleClick(e));
-                            this.switchPlayer();
-                            this.layout();
-                            this.update();
+                            this.systemEngine(e);
+                            this.renderEngine();
                         }
                     }
 
                     keyEvent(e) {
                         if (this.isBlock === false) {
                             if (e.key === "~") {
-                                if (this.callPlayer[this.turn].role === "human") {
-                                    this.signingBox(this.callPlayer[this.turn].playersGuide(Array.from(this.arrSys)));
-                                    this.switchPlayer();
-                                    this.layout();
-                                    this.update();
-                                }
+                                this.systemEngine(e, true);
+                                this.renderEngine();
                             }
                         }
                     }
@@ -577,8 +585,7 @@
                 layoutGame.addEventListener("click", renderEnv.clickEvent.bind(renderEnv));
                 document.addEventListener("keydown", renderEnv.keyEvent.bind(renderEnv));
 
-                renderEnv.layout();
-                renderEnv.update();
+                renderEnv.renderEngine();
             }
         });
     </script>
