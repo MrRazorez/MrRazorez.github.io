@@ -570,9 +570,17 @@
                         }
                     }
 
-                    keyEvent(e) {
+                    async keyEvent(e) {
                         if (this.isBlock === false) {
                             if (e.key === "~") {
+                                const timer = 4000;
+                                announcer.classList.add("designAnnouncer");
+                                announcer.textContent = "Let your AI help you choose the right steps...";
+                                setTimeout(async () => {
+                                    await announcer.classList.remove("designAnnouncer");
+                                    announcer.textContent = null;
+                                }, timer);
+                                await sleep(timer);
                                 this.systemEngine(e, true);
                                 this.renderEngine();
                             }
