@@ -66,6 +66,7 @@
                         x : {x: 0, y: 1},
                         c : {x: 1, y: 1},
                         d : {x: 1, y: 0},
+                        e : {x: 1, y: -1}
                     };
                 }
 
@@ -132,15 +133,6 @@
                     const height = layoutRender.height/this.box.height;
 
                     const ans = [];
-                    const dir = {
-                        w : {x: 0, y: -1},
-                        q : {x: -1, y: -1},
-                        a : {x: -1, y: 0},
-                        z : {x: -1, y: 1},
-                        x : {x: 0, y: 1},
-                        c : {x: 1, y: 1},
-                        d : {x: 1, y: 0},
-                    }
                     const visited = Array.from({ length: height }, () => Array(width).fill(false));
                     const queue = [];
 
@@ -163,7 +155,7 @@
                             break;
                         }
 
-                        for (const [key,value] of Object.entries(dir)) {
+                        for (const [key,value] of Object.entries(this.callBox.dir)) {
                             const nextX = currX + value.x;
                             const nextY = currY + value.y;
                             const nextMove = currMove + key;
