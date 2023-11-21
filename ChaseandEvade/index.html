@@ -5,6 +5,33 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chase and Evade: The Dance of the Red and Magenta Boxes</title>
     <style>
+        .exitGate {
+            position: absolute;
+            left: 95%;
+            width: 25px;
+            height: 25px;
+            margin: 0px;
+            padding: 10px;
+            text-align: center;
+            border: 2px solid white;
+            border-radius: 5px;
+            z-index: 3;
+        }
+
+        .exitGate:hover {
+            border: 2px solid red;
+        }
+
+        .exitGate a {
+            text-decoration: none;
+            color: white;
+            font-family: 'Courier New', monospace;
+            font-size: 25px;
+        }
+
+        .exitGate:hover a:hover {
+            color: red;
+        }
         body {
             background-color: black;
             color: white;
@@ -23,6 +50,7 @@
     </style>
 </head>
 <body>
+    <div class="exitGate"><a href="../index.html">X</a></div>
     <script>
         const startAnimation = () => {
             const layoutRender = document.createElement("canvas");
