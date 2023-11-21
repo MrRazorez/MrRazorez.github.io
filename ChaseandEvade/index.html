@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chase and Evade: The Dance of the Red and Magenta Boxes</title>
+    <style>
+        body {
+            background-color: black;
+            color: white;
+        }
+
+        canvas {
+            position: absolute;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            border : 20px solid white;
+        }
+    </style>
+</head>
+<body>
+    <script>
+        const startAnimation = () => {
+            const layoutRender = document.createElement("canvas");
+            layoutRender.setAttribute("width", "1300");
+            layoutRender.setAttribute("height", "700");
+            document.getElementsByTagName("body")[0].appendChild(layoutRender);
+
+            class Box {
+                constructor(arraySys) {
+                    this.pos = this.randomPosition(arraySys);
+                    this.dir = {
+                        w : {x: 0, y: -1},
+                        q : {x: -1, y: -1},
+                        a : {x: -1, y: 0},
+                        z : {x: -1, y: 1},
+                        x : {x: 0, y: 1},
+                        c : {x: 1, y: 1},
+                        d : {x: 1, y: 0},
+                        e : {x: 1, y: -1}
+                    };
+                }
+
+                move(strVar) {
+                    const {x,y} = this.dir[strVar];
+
+                    return {
+                        x : this.pos.x + x,
+                        y : this.pos.y + y
+                    };
+                }
+
+                giveDirection(strVar) {
+                    const {x,y} = this.dir[strVar];
+
+                    return {x,y};
+                }
+
+                randomPosition(arraySys) {
+                    let pos;
+                    pos = {
+                        x : Math.floor(Math.random() * arraySys[0].length),
+                        y : Math.floor(Math.random() * arraySys.length)
+                    }
+
+                    return pos;
+                }
+            }
+
+            class Environment {
+                constructor() {
+                    this.box = {
+                        width : 20,
+                        height : 20
+                    }
+                    this.layout = {
+                        width : (layoutRender.width),
+                        height : (layoutRender.height)
+                    }
+                    this.arrSys = Array.from({ length : this.layout.height / this.box.height }, () => Array(this.layout.width / this.box.width).fill(0));
+                    this.callBox = new Box(this.arrSys);
+                    this.trackBox = { ...this.callBox.pos };
+                    this.fin = this.randomFreePosition();
+                    this.arrSys[this.callBox.pos.y][this.callBox.pos.x] = 1;
+                    this.arrSys[this.fin.y][this.fin.x] = 2;
+                    this.isBlock = false;
+                }
+
+                randomFreePosition() {
+                    let pos;
+                    do {
+                        pos = {
+                            x : Math.floor(Math.random() * this.arrSys[0].length),
+                            y : Math.floor(Math.random() * this.arrSys.length)
+                        }
+                    } while (this.arrSys[pos.y][pos.x] === 1);
+
+                    return pos;
+                }
+
+                findShortestPath() {
+                    const width = this.layout.width / this.box.width;
+                    const height = this.layout.height / this.box.height;
+
+                    const ans = [];
+                    const visited = Array.from({ length: height }, () => Array(width).fill(false));
+                    const queue = [];
+
+                    queue.push(
+                        {
+                            x : this.callBox.pos.x,
+                            y : this.callBox.pos.y,
+                            move : ""
+                        }
+                    );
+                    visited[this.callBox.pos.y][this.callBox.pos.x] = true;
+
+                    while (queue.length > 0) {
+                        queue.sort((a,b) => a.move.length - b.move.length);
+                        console.log(queue);
+
+                        const { x : currX, y : currY, move : currMove } = queue.shift();
+
+                        if (currX === this.fin.x && currY === this.fin.y) {
+                            ans.push(currMove);
+                            break;
+                        }
+
+                        for (const [key,value] of Object.entries(this.callBox.dir)) {
+                            const nextX = currX + value.x;
+                            const nextY = currY + value.y;
+                            const nextMove = currMove + key;
+
+                            if ((nextX >= 0 && nextX < width && nextY >= 0 && nextY < height) && (this.arrSys[nextY][nextX] === 0 || this.arrSys[nextY][nextX] === 1 || this.arrSys[nextY][nextX] === 2) && visited[nextY][nextX] == false) {
+                                visited[nextY][nextX] = true;
+                                queue.push(
+                                    {
+                                        x : nextX,
+                                        y : nextY,
+                                        move : nextMove
+                                    }
+                                );
+                            }
+                        }
+                    }
+
+                    return ans;
+                }
+
+                cellColoring(cellVal) {
+                    switch (cellVal) {
+                        case 0:
+                            return "black";
+
+                        case 1:
+                            return "red";
+
+                        case 2:
+                            return "magenta";
+                    
+                        default:
+                            return "black";
+                    }
+                }
+
+                render() {
+                    const draw = layoutRender.getContext("2d");
+                    draw.clearRect(0, 0, this.layout.width, this.layout.height);
+
+                    this.arrSys.forEach((row, i) => {
+                        row.forEach((col, j) => {
+                            draw.fillStyle = this.cellColoring(col);
+                            draw.fillRect((j * this.box.width), (i * this.box.height), this.box.width, this.box.height);
+                        });
+                    });
+                }
+
+                movingBox(strVar) {
+                    return new Promise(async (resolve) => {
+                        this.isBlock = true;
+                        const { x : startX, y : startY } = this.callBox.pos;
+                        const { x : endX, y : endY } = this.callBox.move(strVar);
+                        const { x : dirX, y : dirY } = this.callBox.giveDirection(strVar);
+
+                        if ( endX >= 0 && endX < this.arrSys[0].length && endY >= 0 && endY < this.arrSys.length ) {
+                            const draw = layoutRender.getContext("2d");
+
+                            let progressX = startX * this.box.width;
+                            let progressY = startY * this.box.height;
+                            let prevX = (startX * this.box.width) - (dirX);
+                            let prevY = (startY * this.box.height) - (dirY);
+                            const finishX = endX * this.box.width;
+                            const finishY = endY * this.box.height;
+
+                            const asyncAnimation = () => {
+                                return new Promise(resolve => {
+                                    const animateBox = () => {
+                                        if (progressX !== finishX || progressY !== finishY) {
+                                            progressX += dirX;
+                                            progressY += dirY;
+                                            prevX += dirX;
+                                            prevY += dirY;
+                                            draw.fillStyle = this.cellColoring(0);
+                                            draw.fillRect(prevX, prevY, this.box.width, this.box.height);
+                                            draw.fillStyle = this.cellColoring(1);
+                                            draw.fillRect(progressX, progressY, this.box.width, this.box.height);
+                                            requestAnimationFrame(animateBox);
+                                        } else {
+                                            this.isBlock = false;
+                                            resolve();
+                                        }
+                                    }
+
+                                    animateBox();
+                                });
+                            }
+
+                            await asyncAnimation();
+
+                            this.arrSys[startY][startX] = 0;
+                            this.arrSys[endY][endX] = 1;
+
+                            this.callBox.pos = { x : endX, y : endY } ;
+                            resolve();
+                            
+                        } else {
+                            this.isBlock = false;
+                            resolve();
+                        }
+                    });
+                }
+
+                animationCreation() {
+                    let current = 0;
+                    const stringEvent = this.findShortestPath()[0];
+
+                    const animateBox = async () => {
+                        if (current < stringEvent.length) {
+                            const e = stringEvent[current];
+                            await this.movingBox(e);
+                            current++;
+                            requestAnimationFrame(animateBox);
+                        } else {
+                            this.resetFinish();
+                            requestAnimationFrame(this.animationCreation.bind(this));
+                        }
+                    }
+
+                    animateBox();
+                }
+
+                resetFinish() {
+                    this.trackBox = { ...this.callBox.pos };
+                    this.fin = this.randomFreePosition();
+                    this.arrSys[this.callBox.pos.y][this.callBox.pos.x] = 1;
+                    this.arrSys[this.fin.y][this.fin.x] = 2;
+                    this.render();
+                }
+            }
+            
+            const renderEnv = new Environment();
+
+            renderEnv.render();
+            renderEnv.animationCreation();
+        }
+
+        startAnimation();
+
+    </script>
+</body>
+</html>
