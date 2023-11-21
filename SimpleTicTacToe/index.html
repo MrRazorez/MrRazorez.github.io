@@ -411,7 +411,7 @@
                 }
 
                 class environmentGame {
-                    constructor(playerList) {
+                    constructor() {
                         this.callPlayer = {};
                         this.callPlayer[chooseMode === "human" ? "P1" : "Player"] = new playerGame(chooseMode === "human" ? "P1" : "Player", chooseChar === "x" ? "x" : "o", "human");
                         this.callPlayer[chooseMode === "computer" ? "Computer" : "P2"] = new playerGame(chooseMode === "computer" ? "Computer" : "P2", chooseChar !== "x" ? "x" : "o", chooseMode);
