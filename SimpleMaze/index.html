@@ -104,7 +104,8 @@
             const announcer = document.getElementById("announcer");
             const isBoost = document.getElementById("isBoost");
 
-            let canICheat = true;
+            let canICheat = window.localStorage.getItem("block_cheater") ? false : true;
+            let cheatLazy = false;
 
             const createEmpty = (cols, rows) => {
                 const arr = [];
@@ -407,7 +408,14 @@
                         document.removeEventListener("keydown", keyBindEvent);
                         document.removeEventListener("keyup", keyBindEvent);
                         announcer.classList.add("designAnnouncer");
-                        announcer.textContent = "YOU WIN!!";
+
+                        if (cheatLazy === false) {
+                            announcer.textContent = "YOU WIN!!";
+                            window.localStorage.removeItem("block_cheater");   
+                        } else {
+                            announcer.textContent = "YOU FOOL!!";
+                            window.localStorage.setItem("block_cheater", true);
+                        }
                         delete window.commandPlayer;
                         this.isNotOver = false;
                         
@@ -502,7 +510,7 @@
 
                     animatePlayer();
                 },
-                auto : () => {
+                semi : () => {
                     if (boostPlayer === true) {
                         activateBoost();
                     }
@@ -545,6 +553,31 @@
                     }
 
                     animatePlayer();
+                },
+                auto : () => {
+                    if (boostPlayer === true) {
+                        activateBoost();
+                    }
+
+                    renderEnv.isBlock = true;
+                    var commandAI = renderEnv.mazeFindPath();
+                    var stringEvent = commandAI[0];
+                    let curr = 0;
+
+                    const animatePlayer = () => {
+                        if (curr < stringEvent.length) {
+                            const e = {key:stringEvent[curr]};
+                            keyBindEvent(e, true);
+                            renderEnv.detectPlayer();
+                            renderEnv.redrawDirtyRect();
+                            curr++;
+                            requestAnimationFrame(animatePlayer);
+                        } else {
+                            renderEnv.isBlock = false;
+                        }
+                    }
+
+                    animatePlayer();
                 }
             };
 
@@ -559,7 +592,7 @@
 
                         switch (thisIsString) {
                             case "givemeasign" :
-                                commandPlayer.auto();
+                                commandPlayer.semi();
                                 break;
 
                             case "givemeadistance" :
@@ -611,6 +644,7 @@
 
                                     commandPlayer.manual(command);
                                     canICheat = false;
+                                    window.localStorage.setItem("block_cheater", true);
 
                                     cheatBox.textContent = text;
                                 } else if (command.length - (Math.floor(command.length / digit) * digit) === 0) {
@@ -618,6 +652,13 @@
 
                                     cheatBox.textContent = text;
                                 }
+                                break;
+
+                            case "lazymove" :
+                                text = "Seriously? You're playing with unfair strategies.";
+                                commandPlayer.auto();
+                                cheatLazy = true;
+                                cheatBox.textContent = text;
                                 break;
                         
                             default:

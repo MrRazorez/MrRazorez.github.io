@@ -416,6 +416,7 @@
                         this.callPlayer[chooseMode === "human" ? "P1" : "Player"] = new playerGame(chooseMode === "human" ? "P1" : "Player", chooseChar === "x" ? "x" : "o", "human");
                         this.callPlayer[chooseMode === "computer" ? "Computer" : "P2"] = new playerGame(chooseMode === "computer" ? "Computer" : "P2", chooseChar !== "x" ? "x" : "o", chooseMode);
                         this.arrSys = new Array(9).fill("");
+                        this.notStack = true;
                         this.turn = Object.keys(this.callPlayer)[Math.floor(Math.random() * 2)];
                         this.isBlock = this.checkPlayer();
                         whosTurn.textContent = this.turn+"'s Turn!";
@@ -424,6 +425,8 @@
                     signingBox(index) {
                         if (this.arrSys[index] === "") {
                             this.arrSys[index] = this.callPlayer[this.turn].playAs;
+                        } else {
+                            this.notStack = false;
                         }
                     }
 
@@ -534,7 +537,12 @@
                         } else {
                             this.signingBox(this.callPlayer[this.turn].handleClick(e));
                         }
-                        this.switchPlayer();
+
+                        if (this.notStack === true) {
+                            this.switchPlayer();
+                        } else {
+                            this.notStack = true;
+                        }
                     }
 
                     renderEngine() {
